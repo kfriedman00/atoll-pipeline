@@ -8,7 +8,7 @@ library(ggplot2)
 source("PUT PATH TO THE ellipse_generation.R FILE HERE")
 
 ##You need to change the directory above and the path directories in the first function, that's it
-path_to_wd <<- "/home/kyle/Documents/R/SST/Atolls/"
+path_to_wd <<- "INSERT PATH TO atolls HERE. PATH MUST END WITH FORWARD SLASH"
 setwd(path_to_wd)
 
 ##Creates path names, directories, urls, file names, and downloads unprocessed data files (if they don't exist)
