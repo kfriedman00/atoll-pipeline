@@ -81,7 +81,7 @@ fix_combine_data_frames <- function() {
   
   
   Full <<- rbind(outside, inside)
-  cat(blue("BEEEEEEEPPPPP")
+  cat(blue("BEEEEEEEPPPPP"))
   Full$location = as.factor(Full$location)
   write.csv(Full, paste0(atoll, "/Data/", atoll, "_full.csv"))
   cat(green("SQUARE DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _full.csv") %+% "\n")
