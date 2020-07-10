@@ -123,7 +123,7 @@ fix_combine_data_frames <- function() {
   inside_ellipse = inside_ellipse %>% mutate(
     location = as.factor("I")
   )
-  cat(black("Do elephants roar??")
+  cat(black("Do elephants roar??"))
   #####
   
   ellipses <<- rbind(inside_ellipse, outside_ellipse)[,-1]
