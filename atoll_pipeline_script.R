@@ -44,29 +44,29 @@ fix_combine_data_frames <- function() {
   inside = inside[-1,]
   inside$latitude = as.numeric(as.character(inside$latitude))
   inside$longitude = as.numeric(as.character(inside$longitude))
-  cat(red("BEEP"))
+  cat(red("BEEP") %+% "\n")
   inside$analysed_sst = as.numeric(as.character(inside$analysed_sst))
   inside$time = as.character(inside$time)
   inside$date <- as.Date(sapply(inside$time, function(x) strsplit(x, "T")[[1]][1]))
-  cat(green("BOOP"))
+  cat(green("BOOP") %+% "\n")
   inside$month <- lubridate::month(inside$date)
   inside$year <- lubridate::year(inside$date)
   lapply(inside, class)
-  cat(yellow("BEEP BOP"))
+  cat(yellow("BEEP BOP") %+% "\n")
   
   outside = outside[-1,]
   outside$latitude = as.numeric(as.character(outside$latitude))
   outside$longitude = as.numeric(as.character(outside$longitude))
-  cat(silver("BOP BOOP"))
+  cat(silver("BOP BOOP") %+% "\n")
   outside$analysed_sst = as.numeric(as.character(outside$analysed_sst))
   outside$time = as.character(outside$time)
-  cat(magenta("BITTY"))
+  cat(magenta("BITTY") %+% "\n")
   outside$date <- as.Date(sapply(outside$time, function(x) strsplit(x, "T")[[1]][1]))
   outside$month <- lubridate::month(outside$date)
-  cat(cyan("BOPPITY"))
+  cat(cyan("BOPPITY") %+% "\n")
   outside$year <- lubridate::year(outside$date)
   lapply(outside, class)
-  cat(red("BOOP"))
+  cat(red("BOOP") %+% "\n")
   
   outside  = outside %>% mutate(
     location  = as.factor("O")
@@ -81,58 +81,58 @@ fix_combine_data_frames <- function() {
   
   
   Full <<- rbind(outside, inside)
-  cat(blue("BEEEEEEEPPPPP"))
+  cat(blue("BEEEEEEEPPPPP") %+% "\n")
   Full$location = as.factor(Full$location)
   write.csv(Full, paste0(atoll, "/Data/", atoll, "_full.csv"))
   cat(green("SQUARE DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _full.csv") %+% "\n")
   print("Full (before ellipse generation):")
   print(head(Full))
-  
-  cat(blue("CREATING ELLIPTICAL MASKS NOW") %+% "\n")
-  inside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "I", major1, major2, minor1, minor2)
-  outside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "O", major1+shift, major2+shift, minor1+shift, minor2+shift)
-  
-  #####
-  inside_ellipse = inside_ellipse[-1,]
-  inside_ellipse$latitude = as.numeric(as.character(inside_ellipse$latitude))
-  inside_ellipse$longitude = as.numeric(as.character(inside_ellipse$longitude))
-  inside_ellipse$analysed_sst = as.numeric(as.character(inside_ellipse$analysed_sst))
-  inside_ellipse$time = as.character(inside_ellipse$time)
-  cat(red("BOOOOOOOOP"))
-  inside_ellipse$date <- as.Date(sapply(inside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
-  inside_ellipse$month <- lubridate::month(inside_ellipse$date)
-  inside_ellipse$year <- lubridate::year(inside_ellipse$date)
-  lapply(inside_ellipse, class)
-  
-  
-  outside_ellipse = outside_ellipse[-1,]
-  outside_ellipse$latitude = as.numeric(as.character(outside_ellipse$latitude))
-  outside_ellipse$longitude = as.numeric(as.character(outside_ellipse$longitude))
-  cat(black("Fax machine crunching noise"))
-  outside_ellipse$analysed_sst = as.numeric(as.character(outside_ellipse$analysed_sst))
-  outside_ellipse$time = as.character(outside_ellipse$time)
-  outside_ellipse$date <- as.Date(sapply(outside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
-  outside_ellipse$month <- lubridate::month(outside_ellipse$date)
-  outside_ellipse$year <- lubridate::year(outside_ellipse$date)
-  cat(silver("Elephant roar"))
-  lapply(outside_ellipse, class)
-  
-  outside_ellipse  = outside_ellipse %>% mutate(
-    location  = as.factor("O")
-  )
-  inside_ellipse = inside_ellipse %>% mutate(
-    location = as.factor("I")
-  )
-  cat(black("Do elephants roar??"))
-  #####
-  
-  ellipses <<- rbind(inside_ellipse, outside_ellipse)[,-1]
-  write.csv(ellipses, paste0(atoll, "/Data/", atoll, "_processed_data.csv"))
-  cat(green("ELLIPTICAL DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _processed_data.csv") %+% "\n")
-  print("Ellipses (after ellipse generation):")
-  print(head(ellipses))
       
- cat(green("DATA PROCESSING COMPLETED"))
+      cat(blue("CREATING ELLIPTICAL MASKS NOW") %+% "\n")
+      inside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "I", major1, major2, minor1, minor2)
+      outside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "O", major1+shift, major2+shift, minor1+shift, minor2+shift)
+      
+      #####
+      inside_ellipse = inside_ellipse[-1,]
+      inside_ellipse$latitude = as.numeric(as.character(inside_ellipse$latitude))
+      inside_ellipse$longitude = as.numeric(as.character(inside_ellipse$longitude))
+      inside_ellipse$analysed_sst = as.numeric(as.character(inside_ellipse$analysed_sst))
+      inside_ellipse$time = as.character(inside_ellipse$time)
+      cat(red("BOOOOOOOOP") %+% "\n")
+      inside_ellipse$date <- as.Date(sapply(inside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
+      inside_ellipse$month <- lubridate::month(inside_ellipse$date)
+      inside_ellipse$year <- lubridate::year(inside_ellipse$date)
+      lapply(inside_ellipse, class)
+      
+      
+      outside_ellipse = outside_ellipse[-1,]
+      outside_ellipse$latitude = as.numeric(as.character(outside_ellipse$latitude))
+      outside_ellipse$longitude = as.numeric(as.character(outside_ellipse$longitude))
+      cat(black("Fax machine crunching noise") %+% "\n")
+      outside_ellipse$analysed_sst = as.numeric(as.character(outside_ellipse$analysed_sst))
+      outside_ellipse$time = as.character(outside_ellipse$time)
+      outside_ellipse$date <- as.Date(sapply(outside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
+      outside_ellipse$month <- lubridate::month(outside_ellipse$date)
+      outside_ellipse$year <- lubridate::year(outside_ellipse$date)
+      cat(silver("Elephant roar") %+% "\n")
+      lapply(outside_ellipse, class)
+      
+      outside_ellipse  = outside_ellipse %>% mutate(
+        location  = as.factor("O")
+      )
+      inside_ellipse = inside_ellipse %>% mutate(
+        location = as.factor("I")
+      )
+      cat(black("Do elephants roar??") %+% "\n")
+          #####
+          
+          ellipses <<- rbind(inside_ellipse, outside_ellipse)[,-1]
+          write.csv(ellipses, paste0(atoll, "/Data/", atoll, "_processed_data.csv"))
+          cat(green("ELLIPTICAL DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _processed_data.csv") %+% "\n")
+          print("Ellipses (after ellipse generation):")
+          print(head(ellipses))
+          
+          cat(green("DATA PROCESSING COMPLETED") %+% "\n")
 }
 
 ##Runs all of Sriram's data analysis, creates the plots, and spits them out into the plots folder as .png's
