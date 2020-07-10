@@ -71,10 +71,3 @@ ellipse_generation <- function(atoll, file_name_in, local, major1, major2, minor
   inside_data <- square[inside,]
   return(inside_data)
 }
-
-ellipse_area <- function(major1, major2, minor1, minor2){
-  major_dist <- sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
-  minor_dist <- sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
-  area <- pi*major_dist*minor_dist
-  return(area)
-}
