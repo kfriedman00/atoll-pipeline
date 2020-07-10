@@ -544,21 +544,26 @@ plots <- function(){
   ggsave(file = paste0(path_to_plots, "/histogram_total.png"), heat_histogram_total)
   ########
   
-  majoraxis <- c(major2[1] - major1[1], major2[2] - major1[2])/2
-  minoraxis <- c(minor2[1] - minor1[1], minor2[2] - minor1[2])/2
-  
-  ellipse_area <<- 3.14*majoraxis*minoraxis
+  ellipse_area <- ellipse_area(major1, major2, minor1, minor2)
+  ellipse_area_km <- 12321*ellipse_area
   
   overall_values <<- data.frame( Variable = c("Percent Days Bleached Inside", "Percent Days Bleached Outside", 
                                               "Degree Days Inside", "Degree Days Outside",
-                                              "Max Mean Summer Monthly Inside", "Max Mean Summer Monthly Outside", "Ellipse Area"), 
+                                              "Max Mean Summer Monthly Inside", "Max Mean Summer Monthly Outside", "Ellipse Area", "Ellipse Area (km)"), 
                                  Value = c(percent_days_bleach_inside, percent_days_bleach_outside,
                                            degree_days_inside, degree_days_outside,
-                                           inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, ellipse_area))
+                                           inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, ellipse_area, ellipse_area_km))
   
   write.csv(overall_values, paste0(path_to_data, "/", atoll, "_Overall_Values.csv"))
   
   cat(green("PLOTS SUCCESSFULLY DOWNLOADED"))
+}
+  
+ellipse_area <- function(major1, major2, minor1, minor2){
+  major_dist <- sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
+  minor_dist <- sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
+  area <- pi*major_dist*minor_dist
+  return(area)
 }
 
 ##Just runs everything at once
