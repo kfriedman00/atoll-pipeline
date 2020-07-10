@@ -207,92 +207,152 @@ plots <- function(){
     date
   ) %>%
     mutate(
-      bleached = mean(analysed_sst) >(inside_max_mean_summer_monthly + 1) 
+      bleached = mean(analysed_sst) >(inside_max_mean_summer_monthly + bleaching_threshold_C), 
+      mean_sst = mean(analysed_sst)
     ) %>%
     filter(
       !duplicated(date)
     )
+  inside_day = inside_day[-c(1)]
+  inside_day = inside_day[-c(3)]
   
   
   outside_day = outside %>% group_by(
     date
   ) %>%
     mutate(
-      bleached = mean(analysed_sst) > (outside_max_mean_summer_monthly +1)
+      bleached = mean(analysed_sst) > (outside_max_mean_summer_monthly +bleaching_threshold_C), 
+      mean_sst = mean(analysed_sst)
     ) %>%
     filter(
       !duplicated(date)
     ) 
+  outside_day = outside_day[-c(1)]
+  outside_day = outside_day[-c(3)]
   
-  percent_days_bleach_inside <<- sum(inside_day$bleached)/nrow(inside_day)
-  percent_days_bleach_outside <<- sum(outside_day$bleached)/nrow(outside_day)
+  percent_days_bleach_inside <<- (sum(inside_day$bleached)*100)/nrow(inside_day)
+  percent_days_bleach_outside <<- (sum(outside_day$bleached)*100)/nrow(outside_day)
   
-  days_in_dataset = nrow(outside_day)
+  days_in_dataset <<- nrow(outside_day)
   
   #_______________________________________________________________________
   inside_day = inside_day %>%
-    subset(
-      bleached == T
+    filter(
+      mean_sst > (inside_max_mean_summer_monthly + degree_day_threshold)
     ) %>%
     group_by(date) %>%
     mutate(
-      degreeabove = mean(analysed_sst) - inside_max_mean_summer_monthly
+      degreeabove = mean_sst - inside_max_mean_summer_monthly
     ) %>%
     ungroup() %>%
     mutate(
-      consec = cumsum(!c(TRUE, diff(date) == 1))
+      consec = cumsum(!c(TRUE, diff(date) == 1)),
+      dummy = T
     ) %>%
     group_by(consec) %>%
     mutate(
-      degree_days = mean(degreeabove)*sum(bleached)
+      degree_days = sum(degreeabove),
+      run_length = sum(dummy)
+    ) %>%
+    filter(
+      !duplicated(consec)
     )
   
-  degree_days_inside <<- mean(inside_day$degree_days)
+  
+  degree_days_inside <<- sum(inside_day$degree_days)
+  avg_run_inside <<-mean(inside_day$run_length)
+  avg_degree_days_inside <<- mean(inside_day$degree_days)
+  
+  
   
   inside_day = inside_day%>% group_by(year) %>%
     mutate(
-      degreeedays_year = mean(
-        degree_days
-      )
+      degreedays_year = sum(degree_days),
+      run_length_year = mean(run_length),
+      avg_run_degree_days = mean(degree_days),
+      dummy = run_length >1, 
+      n_runs_over_1 = sum(dummy)
+    ) %>% ungroup() %>%
+    group_by(year, month) %>%
+    mutate(
+      degreedays_month = sum(degree_days),
+      run_length_month = mean(run_length),
+      avg_run_degree_days_m = mean(degree_days),
+      dummy = run_length >1, 
+      n_runs_over_1_m = sum(dummy)
     ) 
-  inside_day = inside_day[c("year", "degreeedays_year")]
+  
+
+  n_multi_day_runs_inside<<- sum(inside_day$dummy)
+  
+  inside_day = inside_day[c("date","year", "month", "degreedays_year","run_length_year", "avg_run_degree_days", "n_runs_over_1" , 
+                            "degreedays_month", "run_length_month", "avg_run_degree_days_m","n_runs_over_1_m","location")]
+  
   inside_yearly <<- inside_day %>%
+    group_by(year, month) %>%
     filter(
-      !duplicated(year)
+      !duplicated(month)
     )
   
-  
+
   outside_day = outside_day %>%
-    subset(
-      bleached == T
+    filter(
+      mean_sst > (outside_max_mean_summer_monthly + degree_day_threshold)
     ) %>%
     group_by(date) %>%
     mutate(
-      degreeabove = mean(analysed_sst) - outside_max_mean_summer_monthly
+      degreeabove = mean_sst - outside_max_mean_summer_monthly
     ) %>%
     ungroup() %>%
     mutate(
-      consec = cumsum(!c(TRUE, diff(date) == 1))
+      consec = cumsum(!c(TRUE, diff(date) == 1)),
+      dummy = T
     ) %>%
     group_by(consec) %>%
     mutate(
-      degree_days = mean(degreeabove)*sum(bleached)
+      degree_days = sum(degreeabove),
+      run_length = sum(dummy)
+    ) %>%
+    filter(
+      !duplicated(consec)
     )
   
-  degree_days_outside <<- mean(outside_day$degree_days)
+  
+  degree_days_outside <<- sum(outside_day$degree_days)
+  avg_run_outside <<-mean(outside_day$run_length)
+  avg_degree_days_outside <<- mean(outside_day$degree_days)
+
+  
+  
   
   outside_day = outside_day%>% group_by(year) %>%
     mutate(
-      degreeedays_year = mean(
-        degree_days
-      )
+      degreedays_year = sum(degree_days),
+      run_length_year = mean(run_length),
+      avg_run_degree_days = mean(degree_days),
+      dummy = run_length >1, 
+      n_runs_over_1 = sum(dummy)
+    ) %>% ungroup() %>%
+    group_by(year, month) %>%
+    mutate(
+      degreedays_month = sum(degree_days),
+      run_length_month = mean(run_length),
+      avg_run_degree_days_m = mean(degree_days),
+      dummy = run_length >1, 
+      n_runs_over_1_m = sum(dummy)
     ) 
-  outside_day = outside_day[c("year", "degreeedays_year")]
-  outside_yearly <<- outside_day %>%
-    filter(
-      !duplicated(year)
-    )
   
+  
+  n_multi_day_runs_outside<<- sum(outside_day$dummy)
+  
+  outside_day = outside_day[c("date","year", "month", "degreedays_year","run_length_year", "avg_run_degree_days", "n_runs_over_1" , 
+                            "degreedays_month", "run_length_month", "avg_run_degree_days_m","n_runs_over_1_m","location")]
+  
+  outside_yearly <<- outside_day %>%
+    group_by(year, month) %>%
+    filter(
+      !duplicated(month)
+    )
   
   rm(inside_day)
   rm(outside_day)
@@ -311,14 +371,14 @@ plots <- function(){
   #points bleached and percentage of total area
   inside = inside %>%
     mutate(
-      point_bleach = analysed_sst> inside_max_mean_summer_monthly + 1
+      point_bleach = analysed_sst> (inside_max_mean_summer_monthly + bleaching_threshold_C)
     )
   
-  
+ 
   n_points = inside %>%
     group_by(year, month, date) %>%
     tally()
-  n_points = n_points$n[1]
+  n_points = n_points$n[2]
   
   
   inside = inside %>%
@@ -331,13 +391,13 @@ plots <- function(){
   
   outside = outside %>%
     mutate(
-      point_bleach = analysed_sst> outside_max_mean_summer_monthly +1
+      point_bleach = analysed_sst> outside_max_mean_summer_monthly +bleaching_threshold_C
     )
   
   n_points = outside %>%
     group_by(year, month, date) %>%
     tally()
-  n_points = n_points$n[1]
+  n_points = n_points$n[2]
   
   outside = outside %>%
     group_by(year, month, date) %>%
@@ -345,7 +405,20 @@ plots <- function(){
       percent_bleach = sum(point_bleach)/n_points
     )
   
+  inside_day = inside %>%
+    filter(
+      !duplicated(date)
+    )
+  outside_day = outside %>%
+    filter(
+      !duplicated(date)
+    )
+  
+  
   rm(n_points)
+  rm(inside_day)
+  rm(outside_day)
+  
   
   #_________________________________________________________
   #degree days
@@ -354,62 +427,98 @@ plots <- function(){
       degreeabove = analysed_sst - inside_max_mean_summer_monthly
     ) %>%
     filter(
-      point_bleach == T
+      degreeabove > degree_day_threshold
     )
+  
   
   inside_degreeday = inside_degreeday %>%  group_by(latitude, longitude) %>%
     mutate(
-      consec = cumsum(!c(TRUE, diff(date) == 1))
+      consec = cumsum(!c(TRUE, diff(date) == 1)),
+      dummy = T
     ) %>%
+    ungroup() %>%
     group_by(
       latitude, longitude, consec
     ) %>%
     mutate(
-      degree_days = mean(degreeabove)*sum(point_bleach)
+      degree_days = sum(degreeabove),
+      run_length = sum(dummy),
+      dummy = run_length >1
     ) %>%
-    ungroup(
-    ) %>%
-    group_by(
-      latitude, longitude, year
-    ) %>%
+    ungroup() %>%
+    group_by(latitude, longitude) %>%
+    filter(!duplicated(consec))%>% ungroup() %>%
+    group_by(latitude, longitude, year) %>%
     mutate(
-      degree_days_year = mean(degree_days)
+      degree_days_year = sum(degree_days),
+      run_length_year = mean(run_length)
     )
-  inside_degreeday = inside_degreeday[c("latitude","longitude","year","degree_days", "degree_days_year")]
+  
+  
+
+    inside_degreeday  = inside_degreeday %>%
+      group_by(latitude, longitude, year) %>%
+      mutate(n_multiday_runs = sum(dummy))
+    
+    inside_degreeday =   inside_degreeday%>%
+    group_by(latitude, longitude) %>%
+    filter(
+      !duplicated(year)
+    )
+  
+  
+  inside_degreeday = inside_degreeday[c("latitude","longitude","year","degree_days_year", "run_length_year", "n_multiday_runs")]
   
   outside_degreeday <<- outside %>% 
     mutate(
       degreeabove = analysed_sst - outside_max_mean_summer_monthly
     ) %>%
     filter(
-      point_bleach == T
+      degreeabove > degree_day_threshold
     )
+  
   
   outside_degreeday = outside_degreeday %>%  group_by(latitude, longitude) %>%
     mutate(
-      consec = cumsum(!c(TRUE, diff(date) == 1))
+      consec = cumsum(!c(TRUE, diff(date) == 1)),
+      dummy = T
     ) %>%
+    ungroup() %>%
     group_by(
       latitude, longitude, consec
     ) %>%
     mutate(
-      degree_days = mean(degreeabove)*sum(point_bleach)
+      degree_days = sum(degreeabove),
+      run_length = sum(dummy),
+      dummy = run_length >1
     ) %>%
-    ungroup(
-    ) %>%
-    group_by(
-      latitude, longitude, year
-    ) %>%
+    ungroup() %>%
+    group_by(latitude, longitude) %>%
+    filter(!duplicated(consec))%>% ungroup() %>%
+    group_by(latitude, longitude, year) %>%
     mutate(
-      degree_days_year = mean(degree_days)
+      degree_days_year = sum(degree_days),
+      run_length_year = mean(run_length)
     )
   
-  test = outside_degreeday %>% filter(
-    latitude ==16.77, longitude == -169.3, consec == 81
-  )
   
   
-  outside_degreeday = outside_degreeday[c("latitude","longitude","year","degree_days", "degree_days_year")]
+  outside_degreeday  = outside_degreeday %>%
+    group_by(latitude, longitude, year) %>%
+    mutate(n_multiday_runs = sum(dummy))
+  
+  outside_degreeday =   outside_degreeday%>%
+    group_by(latitude, longitude) %>%
+    filter(
+      !duplicated(year)
+    )
+  
+  
+  outside_degreeday = outside_degreeday[c("latitude","longitude","year","degree_days_year", "run_length_year", "n_multiday_runs")]
+  # test = outside_degreeday %>% filter(
+  #   latitude ==16.77, longitude == -169.3, consec == 81
+  # )
+  
   ########
   
   #_________________________________
@@ -452,7 +561,7 @@ plots <- function(){
   #      res=100, width=6, height=4, units="in", compression="lzw")
   bleach_outside_graph <- outside %>%
     group_by(latitude, longitude) %>%
-    summarise(time_bleached  = sum(point_bleach)/days_in_dataset) %>%
+    summarise(time_bleached  = sum(point_bleach)*100/days_in_dataset) %>%
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = time_bleached)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
@@ -464,12 +573,12 @@ plots <- function(){
   #dev.off()
   
   ggsave(file = paste0(path_to_plots, "/bleach_outside.png"), bleach_outside_graph)
-  
+
   # tiff(filename=paste0(path_to_plots, "/bleachInside.tiff"),
   #      res=100, width=6, height=4, units="in", compression="lzw")
   bleach_inside_graph <- inside %>%
     group_by(latitude, longitude) %>%
-    summarise(time_bleached  = sum(point_bleach)/days_in_dataset) %>%
+    summarise(time_bleached  = sum(point_bleach)*100/days_in_dataset) %>%
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = time_bleached)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
@@ -479,7 +588,7 @@ plots <- function(){
     labs(fill = "Percent Days \nBleached") +
     theme(legend.title = element_text(color = "red", hjust = 0.5))
   #dev.off()
-  
+
   ggsave(file = paste0(path_to_plots, "/bleach_inside.png"), bleach_inside_graph)
   
   #####
@@ -512,9 +621,9 @@ plots <- function(){
   
   # tiff(filename=paste0(path_to_plots, "/maxTemp2015Outside.tiff"), 
   #      res=100, width=6, height=4, units="in", compression="lzw")
-  max_sst_in <- inside %>% 
+  max_sst_in <- ellipses %>% 
     group_by(latitude, longitude) %>%
-    filter(year == 2015) %>%
+    filter(location == "I", year == 2015) %>%
     summarise(sst = max(analysed_sst)) %>% 
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = sst)) + 
@@ -526,10 +635,26 @@ plots <- function(){
     #      panel.grid.minor = element_blank(), panel.background = element_rect(fill = NA)) +
     labs(fill = "Max Sea Surface \nTemperature (Celcius)") +
     theme(legend.title = element_text(size = 8, colour = "red", hjust = 0.5))+
-    ylab("Latitude") + xlab("Longitude")
+    ylab("Latitude") + xlab("Longitude") +
+    coord_cartesian(xlim = c(167.33, 167.63), ylim=c(9.02, 9.32))
   # dev.off()
   
   ggsave(file = paste0(path_to_plots, "/max_sst_in.png"), max_sst_in)
+  ########
+  
+  overall_values <<- data.frame( Variable = c("Percent Days Bleached Inside", "Percent Days Bleached Outside", 
+                                       "Degree Days Inside", "Degree Days Outside",
+                                       "Max Mean Summer Monthly Inside", "Max Mean Summer Monthly Outside", "Average Run Length Inside",
+                                       "Average Run Length Outside", "Average Degree Days/ Run Inside", "Average Degree Days/ Run Outside",
+                                       "Multi Day Runs Inside", "Multi Day Runs Outside"), 
+                                 Value = c(percent_days_bleach_inside, percent_days_bleach_outside,
+                                       degree_days_inside, degree_days_outside,
+                                       inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, avg_run_inside, avg_run_outside,
+                                       avg_degree_days_inside, avg_degree_days_outside, n_multi_day_runs_inside, n_multi_day_runs_outside))
+ 
+  
+   write.csv(overall_values, paste0(path_to_data, "/Overall_Values.csv"))
+
   
   heat_histogram_total = ellipses %>%
     group_by(location, date) %>%
@@ -542,21 +667,47 @@ plots <- function(){
     ggtitle("Mean Celcius by Day") + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) 
   ggsave(file = paste0(path_to_plots, "/histogram_total.png"), heat_histogram_total)
-  ########
   
-  ellipse_area <- ellipse_area(major1, major2, minor1, minor2)
-  ellipse_area_km <- 12321*ellipse_area
   
-  overall_values <<- data.frame( Variable = c("Percent Days Bleached Inside", "Percent Days Bleached Outside", 
-                                              "Degree Days Inside", "Degree Days Outside",
-                                              "Max Mean Summer Monthly Inside", "Max Mean Summer Monthly Outside", "Ellipse Area", "Ellipse Area (km)"), 
-                                 Value = c(percent_days_bleach_inside, percent_days_bleach_outside,
-                                           degree_days_inside, degree_days_outside,
-                                           inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, ellipse_area, ellipse_area_km))
+  yearly_total <<- rbind(inside_yearly, outside_yearly)
+  yearly_total %>%
+    ggplot() +
+    geom_point(aes(x=year, y= degreedays_year, group = location, color = location)) +
+    geom_smooth(aes(x=year, y= degreedays_year, group = location, color = location), se = F) +
+    ggtitle("Yearly degree days") 
   
-  write.csv(overall_values, paste0(path_to_data, "/", atoll, "_Overall_Values.csv"))
+  yearly_total %>%
+    ggplot() +
+    geom_point(aes(x=year, y= run_length_year, group = location, color = location)) +
+    geom_smooth(aes(x=year, y= run_length_year, group = location, color = location), se = F) +
+    ggtitle("Yearly Mean Run Length")
   
-  cat(green("PLOTS SUCCESSFULLY DOWNLOADED"))
+  yearly_total %>%
+    ggplot() +
+    geom_point(aes(x=year, y= n_runs_over_1, group = location, color = location)) +
+    geom_smooth(aes(x=year, y= n_runs_over_1, group = location, color = location), se = F) +
+    ggtitle("Yearly #of Runs")
+  
+  
+  
+  yearly_total %>%
+    ggplot() +
+    geom_point(aes(x=date, y= degreedays_month, group = location, color = location)) +
+    geom_smooth(aes(x=date, y= degreedays_month, group = location, color = location), se = F) +
+    ggtitle("Monthly Degreedays")
+  
+  yearly_total %>%
+    ggplot() +
+    geom_point(aes(x=date, y= run_length_month, group = location, color = location)) +
+    geom_smooth(aes(x=date, y= run_length_month, group = location, color = location), se = F) +
+    ggtitle("Monthly Mean Run Length")
+  
+  yearly_total %>%
+    filter(year>2015) %>%
+    ggplot() +
+    geom_point(aes(x=date, y= n_runs_over_1_m, group = location, color = location)) +
+    geom_smooth(aes(x=date, y= n_runs_over_1_m, group = location, color = location), se = F) +
+    ggtitle("Monthly #of Runs After 2015")
 }
   
 ellipse_area <- function(major1, major2, minor1, minor2){
@@ -581,6 +732,10 @@ long_in <- list(min = ..., max = ...)
 start_date <- as.Date("2002-06-22T09:00:00Z")
 end_date <- as.Date("2020-06-22T09:00:00Z")
 atoll <- "PUT ATOLL NAME HERE"
+                                         
+#degrees above max monthly mean that is counted
+bleaching_threshold_C = 0.5
+degree_day_threshold = 0
 
 major1 <- c(..., ...)
 major2 <- c(..., ...)
