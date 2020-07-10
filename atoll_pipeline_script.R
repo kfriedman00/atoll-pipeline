@@ -109,7 +109,7 @@ plots <- function(){
     summarise(Mean = mean(analysed_sst)) %>%
     ggplot(aes(date, Mean, color = location, group = location)) +
     geom_point() + geom_smooth(se = F) +
-    ggtitle("Temperature over Years") + 
+    ggtitle(paste(atoll, "Temperature over Years")) + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     xlab("Date") + ylab("Location Average (Celcius)") 
   
@@ -120,7 +120,7 @@ plots <- function(){
     summarise(Mean = mean(analysed_sst)) %>%
     ggplot(aes(date, Mean, color = location, group = location)) +
     geom_point(alpha = 0.05) + geom_smooth(se = F) +
-    ggtitle("Temperature over Years") + 
+    ggtitle(paste(atoll, "Temperature over Years")) + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     xlab("Date") + ylab("Location Average (Celcius)") 
   
@@ -509,7 +509,7 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = degree_days_year)) +
     #scale_fill_gradientn(colours=viridis::plasma(5)) +
-    ggtitle("Degree Days Outside\n 2015") +  
+    ggtitle(paste(atoll, "Degree Days Outside\n 2015")) +  
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Degree Days") +
@@ -524,7 +524,7 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = degree_days_year)) +
     #scale_fill_gradientn(colours=viridis::plasma(5)) +
-    ggtitle("Degree Days Inside\n 2015") +  
+    ggtitle(paste(atoll, "Degree Days Inside\n 2015")) +  
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Degree Days") +
@@ -541,7 +541,7 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = time_bleached)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
-    ggtitle("Percent Days Bleached Outside") +
+    ggtitle(paste(atoll, "Percent Days Bleached Outside")) +
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Percent Days \nBleached") +
@@ -558,7 +558,7 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = time_bleached)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
-    ggtitle("Percent Days Bleached Inside") +
+    ggtitle(paste(atoll, "Percent Days Bleached Inside")) +
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Percent Days \nBleached") +
@@ -583,7 +583,7 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = sst)) + 
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(29.9, 30.5)) +
-    ggtitle("Sea Surface Temp \n2015 Outside") + 
+    ggtitle(paste(atoll, "Sea Surface Temp \n2015 Outside")) + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     #dashed lines
     # theme(panel.grid.major = element_line(color = 'black', linetype = 'dashed'), panel.ontop = T,
@@ -604,7 +604,7 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = sst)) + 
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(29.9, 30.5)) +
-    ggtitle("Sea Surface Temp \n2015 Inside") + 
+    ggtitle(paste(atoll, "Sea Surface Temp \n2015 Inside")) + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     #dashed lines
     #theme(panel.grid.major = element_line(color = 'black', linetype = 'dashed'), panel.ontop = T,
@@ -626,7 +626,7 @@ plots <- function(){
     geom_histogram(aes(x = Mean,group = location, color = location, fill= location),position = 'dodge') +
     xlab("Mean Celcius") +
     ylab("Frequency") +
-    ggtitle("Mean Celcius by Day") + 
+    ggtitle(paste(atoll, "Mean Celcius by Day")) + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) 
   ggsave(file = paste0(path_to_plots, "/histogram_total.png"), heat_histogram_total)
   
@@ -636,43 +636,43 @@ plots <- function(){
     ggplot() +
     geom_point(aes(x=year, y= degreedays_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= degreedays_year, group = location, color = location), se = F) +
-    ggtitle("Yearly degree days") 
+    ggtitle(paste(atoll, "Yearly degree days")) 
   
   yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= run_length_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= run_length_year, group = location, color = location), se = F) +
-    ggtitle("Yearly Mean Run Length")
+    ggtitle(paste(atoll, "Yearly Mean Run Length"))
   
   yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= n_runs_over_1, group = location, color = location)) +
     geom_smooth(aes(x=year, y= n_runs_over_1, group = location, color = location), se = F) +
-    ggtitle("Yearly #of Runs")
+    ggtitle(paste(atoll, "Yearly #of Runs"))
  
   yearly_total %>%
     ggplot() +
     geom_point(aes(x=date, y= degreedays_month, group = location, color = location)) +
     geom_smooth(aes(x=date, y= degreedays_month, group = location, color = location), se = F) +
-    ggtitle("Monthly Degreedays")
+    ggtitle(paste(atoll, "Monthly Degreedays"))
   
   yearly_total %>%
     ggplot() +
     geom_point(aes(x=date, y= run_length_month, group = location, color = location)) +
     geom_smooth(aes(x=date, y= run_length_month, group = location, color = location), se = F) +
-    ggtitle("Monthly Mean Run Length")
+    ggtitle(paste(atoll, "Monthly Mean Run Length"))
   
   yearly_total %>%
     filter(year>2015) %>%
     ggplot() +
     geom_point(aes(x=date, y= n_runs_over_1_m, group = location, color = location)) +
     geom_smooth(aes(x=date, y= n_runs_over_1_m, group = location, color = location), se = F) +
-    ggtitle("Monthly #of Runs After 2015")
+    ggtitle(paste(atoll, "Monthly #of Runs After 2015"))
   ########
   
   
   ellipse_area_function <<- ellipse_area(major1, major2, minor1, minor2)
-  ellipse_area_points <<- 1.2321*n_points
+  ellipse_area_points <<- 1.2321 * n_points
   
   overall_values <<- data.frame( Variable = c("Percent Days Bleached Inside", "Percent Days Bleached Outside", 
                                        "Degree Days Inside", "Degree Days Outside",
