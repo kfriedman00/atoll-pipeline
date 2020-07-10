@@ -6,11 +6,12 @@ library(fishualize)
 library(gganimate)
 library(ggplot2)
 library(crayon)
-source("PUT PATH TO THE ellipse_generation.R FILE HERE")
+source("C:/Users/kanoe/Documents/Research Data/BSURP/ellipse_generation.R")
 
 ##You need to change the directory above and the path directories in the first function, that's it
-path_to_wd <<- "INSERT PATH TO atolls HERE. PATH MUST END WITH FORWARD SLASH"
+path_to_wd <<- "C:/Users/kanoe/Documents/Research Data/BSURP/Atolls/"
 setwd(path_to_wd)
+
 
 ##Creates path names, directories, urls, file names, and downloads unprocessed data files (if they don't exist)
 create_url_and_files <- function(server, sst_id, start_date, end_date, lat, long_in, atoll) {
@@ -36,112 +37,67 @@ create_url_and_files <- function(server, sst_id, start_date, end_date, lat, long
 
 ##"Fixes" data frames (column class types, etc), combines them, and runs the ellipse_generation function
 fix_combine_data_frames <- function() {
-  inside <- read.csv(inside_file)
-  outside <- read.csv(outside_file)
+  inside <- read.csv(inside_file, stringsAsFactors = FALSE)
+  outside <- read.csv(outside_file, stringsAsFactors = FALSE)
   
-  cat(blue("COMBINING SQUARE DATA NOW")%+% "\n")
-  #####
   inside = inside[-1,]
-  inside$latitude = as.numeric(as.character(inside$latitude))
-  inside$longitude = as.numeric(as.character(inside$longitude))
-  cat(red("BEEP") %+% "\n")
-  inside$analysed_sst = as.numeric(as.character(inside$analysed_sst))
-  inside$time = as.character(inside$time)
-  inside$date <- as.Date(sapply(inside$time, function(x) strsplit(x, "T")[[1]][1]))
-  cat(green("BOOP") %+% "\n")
-  inside$month <- lubridate::month(inside$date)
-  inside$year <- lubridate::year(inside$date)
-  lapply(inside, class)
-  cat(yellow("BEEP BOP") %+% "\n")
+  inside$latitude <- as.numeric(as.character(inside$latitude))
+  inside$longitude <- as.numeric(as.character(inside$longitude))
+  cat(red("BEEP"))
+  inside$analysed_sst <- as.numeric(as.character(inside$analysed_sst))
+  
   
   outside = outside[-1,]
-  outside$latitude = as.numeric(as.character(outside$latitude))
-  outside$longitude = as.numeric(as.character(outside$longitude))
-  cat(silver("BOP BOOP") %+% "\n")
-  outside$analysed_sst = as.numeric(as.character(outside$analysed_sst))
-  outside$time = as.character(outside$time)
-  cat(magenta("BITTY") %+% "\n")
-  outside$date <- as.Date(sapply(outside$time, function(x) strsplit(x, "T")[[1]][1]))
-  outside$month <- lubridate::month(outside$date)
-  cat(cyan("BOPPITY") %+% "\n")
-  outside$year <- lubridate::year(outside$date)
-  lapply(outside, class)
-  cat(red("BOOP") %+% "\n")
+  outside$latitude <- as.numeric(as.character(outside$latitude))
+  outside$longitude <- as.numeric(as.character(outside$longitude))
+  cat(silver("BOP BOOP"))
+  outside$analysed_sst <- as.numeric(as.character(outside$analysed_sst))
   
-  outside  = outside %>% mutate(
+  print(length(inside$latitude))
+  print(length(outside$latitude))
+  cat(blue("CREATING ELLIPTICAL MASKS NOW") %+% "\n")
+  inside_ellipse <- ellipse_generation(inside, major1, major2, minor1, minor2)
+  outside_ellipse <- ellipse_generation(outside, major1+shift, major2+shift, minor1+shift, minor2+shift)
+  
+  print(length(inside_ellipse[,1]))
+  print(length(outside_ellipse[,1]))
+  #####inside_ellipse$time = as.character(inside_ellipse$time)
+  cat(red("BOOOOOOOOP"))
+  
+  print(length(inside_ellipse$time))
+  
+  inside_ellipse$time <- as.character(inside_ellipse$time)
+  inside_ellipse$date <- as.Date(sapply(inside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
+  inside_ellipse$month <- lubridate::month(inside_ellipse$date)
+  inside_ellipse$year <- lubridate::year(inside_ellipse$date)
+  lapply(inside_ellipse, class)
+  
+  
+  cat(black("Fax machine crunching noise"))
+  outside_ellipse$time <- as.character(outside_ellipse$time)
+  outside_ellipse$date <- as.Date(sapply(outside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
+  outside_ellipse$month <- lubridate::month(outside_ellipse$date)
+  outside_ellipse$year <- lubridate::year(outside_ellipse$date)
+  cat(silver("Elephant roar"))
+  lapply(outside_ellipse, class)
+  
+  outside_ellipse  = outside_ellipse %>% mutate(
     location  = as.factor("O")
   )
-  inside = inside %>% mutate(
+  inside_ellipse = inside_ellipse %>% mutate(
     location = as.factor("I")
   )
+  cat(black("Do elephants roar??"))
   #####
   
-  lapply(inside, class)
-  lapply(outside, class)
-  
-  
-  Full <<- rbind(outside, inside)
-  cat(blue("BEEEEEEEPPPPP") %+% "\n")
-  Full$location = as.factor(Full$location)
-  write.csv(Full, paste0(atoll, "/Data/", atoll, "_full.csv"))
-  cat(green("SQUARE DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _full.csv") %+% "\n")
-  print("Full (before ellipse generation):")
-  print(head(Full))
+  ellipses <<- rbind(inside_ellipse, outside_ellipse)[,-1]
+  write.csv(ellipses, paste0(atoll, "/Data/", atoll, "_processed_data.csv"))
+  cat(green("ELLIPTICAL DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _processed_data.csv") %+% "\n")
+  print("Ellipses (after ellipse generation):")
+  print(head(ellipses))
       
-      cat(blue("CREATING ELLIPTICAL MASKS NOW") %+% "\n")
-      inside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "I", major1, major2, minor1, minor2)
-      outside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "O", major1+shift, major2+shift, minor1+shift, minor2+shift)
-      
-      #####
-      inside_ellipse = inside_ellipse[-1,]
-      inside_ellipse$latitude = as.numeric(as.character(inside_ellipse$latitude))
-      inside_ellipse$longitude = as.numeric(as.character(inside_ellipse$longitude))
-      inside_ellipse$analysed_sst = as.numeric(as.character(inside_ellipse$analysed_sst))
-      inside_ellipse$time = as.character(inside_ellipse$time)
-      cat(red("BOOOOOOOOP") %+% "\n")
-      inside_ellipse$date <- as.Date(sapply(inside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
-      inside_ellipse$month <- lubridate::month(inside_ellipse$date)
-      inside_ellipse$year <- lubridate::year(inside_ellipse$date)
-      lapply(inside_ellipse, class)
-      
-      
-      outside_ellipse = outside_ellipse[-1,]
-      outside_ellipse$latitude = as.numeric(as.character(outside_ellipse$latitude))
-      outside_ellipse$longitude = as.numeric(as.character(outside_ellipse$longitude))
-      cat(black("Fax machine crunching noise") %+% "\n")
-      outside_ellipse$analysed_sst = as.numeric(as.character(outside_ellipse$analysed_sst))
-      outside_ellipse$time = as.character(outside_ellipse$time)
-      outside_ellipse$date <- as.Date(sapply(outside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
-      outside_ellipse$month <- lubridate::month(outside_ellipse$date)
-      outside_ellipse$year <- lubridate::year(outside_ellipse$date)
-      cat(silver("Elephant roar") %+% "\n")
-      lapply(outside_ellipse, class)
-      
-      outside_ellipse  = outside_ellipse %>% mutate(
-        location  = as.factor("O")
-      )
-      inside_ellipse = inside_ellipse %>% mutate(
-        location = as.factor("I")
-      )
-      cat(black("Do elephants roar??") %+% "\n")
-          #####
-          
-          ellipses <<- rbind(inside_ellipse, outside_ellipse)[,-1]
-          write.csv(ellipses, paste0(atoll, "/Data/", atoll, "_processed_data.csv"))
-          cat(green("ELLIPTICAL DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _processed_data.csv") %+% "\n")
-          print("Ellipses (after ellipse generation):")
-          print(head(ellipses))
-          
-          cat(green("DATA PROCESSING COMPLETED") %+% "\n")
+  cat(green("DATA PROCESSING COMPLETED"))
 }
-                                             
-ellipse_area <- function(major1, major2, minor1, minor2){
-  major_dist <- 0.5*sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
-  minor_dist <- 0.5*sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
-  area <- 12321*pi*major_dist*minor_dist
-  return(area)
-}
-
 
 ##Runs all of Sriram's data analysis, creates the plots, and spits them out into the plots folder as .png's
 plots <- function(){
@@ -235,8 +191,8 @@ plots <- function(){
     filter(
       !duplicated(date)
     )
-  inside_day = inside_day[-c(1)]
-  inside_day = inside_day[-c(3)]
+  #inside_day = inside_day[-c(1)]
+  #inside_day = inside_day[-c(3)]
   
   
   outside_day = outside %>% group_by(
@@ -249,8 +205,8 @@ plots <- function(){
     filter(
       !duplicated(date)
     ) 
-  outside_day = outside_day[-c(1)]
-  outside_day = outside_day[-c(3)]
+  #outside_day = outside_day[-c(1)]
+  #outside_day = outside_day[-c(3)]
   
   percent_days_bleach_inside <<- (sum(inside_day$bleached)*100)/nrow(inside_day)
   percent_days_bleach_outside <<- (sum(outside_day$bleached)*100)/nrow(outside_day)
@@ -398,7 +354,7 @@ plots <- function(){
   
  
   n_points = inside %>%
-    group_by(year, month, date) %>%
+    group_by(date) %>%
     tally()
   n_points = n_points$n[2]
   
@@ -553,7 +509,7 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = degree_days_year)) +
     #scale_fill_gradientn(colours=viridis::plasma(5)) +
-    ggtitle("Degre Days Outside\n 2015") +  
+    ggtitle("Degree Days Outside\n 2015") +  
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Degree Days") +
@@ -568,7 +524,7 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = degree_days_year)) +
     #scale_fill_gradientn(colours=viridis::plasma(5)) +
-    ggtitle("Degre Days Inside\n 2015") +  
+    ggtitle("Degree Days Inside\n 2015") +  
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Degree Days") +
@@ -676,50 +632,42 @@ plots <- function(){
   
   
   yearly_total <<- rbind(inside_yearly, outside_yearly)
-  
-  yearly_degree_days <- yearly_total %>%
+  yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= degreedays_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= degreedays_year, group = location, color = location), se = F) +
     ggtitle("Yearly degree days") 
   
-  ggsave(file = paste0(path_to_plots, "/yearly_degree_days.png"), yearly_degree_days)
-  
-  yearly_mean_run_length <- yearly_total %>%
+  yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= run_length_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= run_length_year, group = location, color = location), se = F) +
     ggtitle("Yearly Mean Run Length")
-  ggsave(file = paste0(path_to_plots, "/yearly_mean_run_length.png"), yearly_mean_run_length)
   
-  yearly_num_of_runs <- yearly_total %>%
+  yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= n_runs_over_1, group = location, color = location)) +
     geom_smooth(aes(x=year, y= n_runs_over_1, group = location, color = location), se = F) +
     ggtitle("Yearly #of Runs")
-  ggsave(file = paste0(path_to_plots, "/yearly_num_of_runs.png"), yearly_num_of_runs)
-  
-  monthly_degree_days <- yearly_total %>%
+ 
+  yearly_total %>%
     ggplot() +
     geom_point(aes(x=date, y= degreedays_month, group = location, color = location)) +
     geom_smooth(aes(x=date, y= degreedays_month, group = location, color = location), se = F) +
     ggtitle("Monthly Degreedays")
-  ggsave(file = paste0(path_to_plots, "/monthly_degree_days.png"), monthly_degree_days)
   
-  monthly_mean_run_length <- yearly_total %>%
+  yearly_total %>%
     ggplot() +
     geom_point(aes(x=date, y= run_length_month, group = location, color = location)) +
     geom_smooth(aes(x=date, y= run_length_month, group = location, color = location), se = F) +
     ggtitle("Monthly Mean Run Length")
-  ggsave(file = paste0(path_to_plots, "/monthly_mean_run_length.png"), monthly_mean_run_length)
   
-  monthly_num_of_runs_after_2015 <- yearly_total %>%
+  yearly_total %>%
     filter(year>2015) %>%
     ggplot() +
     geom_point(aes(x=date, y= n_runs_over_1_m, group = location, color = location)) +
     geom_smooth(aes(x=date, y= n_runs_over_1_m, group = location, color = location), se = F) +
     ggtitle("Monthly #of Runs After 2015")
-  ggsave(file = paste0(path_to_plots, "/monthly_num_of_runs_after_2015.png"), monthly_num_of_runs_after_2015)
   ########
   
   
@@ -739,10 +687,17 @@ plots <- function(){
                                           ellipse_area_function, ellipse_area_points))
  
   
-  write.csv(overall_values, paste0(path_to_data, "/", atoll, "_Overall_Values.csv"))
+   write.csv(overall_values, paste0(path_to_data, "/", atoll, "Overall_Values.csv"))
   cat(green("PLOTS SUCCESSFULLY DOWNLOADED"))
 }
   
+ellipse_area <- function(major1, major2, minor1, minor2){
+  major_dist <- 0.5*sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
+  minor_dist <- 0.5*sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
+  area <- 12321*pi*major_dist*minor_dist
+  return(area)
+}
+
 ##Just runs everything at once
 big_ol_run <- function() {
   create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, long_out, atoll)
@@ -753,23 +708,35 @@ big_ol_run <- function() {
 ##INPUT THIS INFORMATION THEN RUN SCRIPTS; Remember to change out the info for each atoll, but this is all you need to change
 server <- "https://coastwatch.pfeg.noaa.gov/erddap/griddap/"
 sst_id <- "jplMURSST41.csv?analysed_sst"
-lat <- list (min = ..., max = ...)
-long_in <- list(min = ..., max = ...)
+lat <- list (min = -15.3, max = -14.95)
+long_in <- list(min = -147.9, max = -147.3)
 start_date <- as.Date("2002-06-22T09:00:00Z")
 end_date <- as.Date("2020-06-22T09:00:00Z")
-atoll <- "PUT ATOLL NAME HERE"
+atoll <- "Rangiroa"
                                          
 #degrees above max monthly mean that is counted
 bleaching_threshold_C = 0.5
 degree_day_threshold = 0
 
-major1 <- c(..., ...)
-major2 <- c(..., ...)
-minor1 <- c(..., ...)
-minor2 <- c(..., ...)
+major1 <- c(-14.997, -147.869)
+major2 <- c(-15.257, -147.383)
+minor1 <- c(-15.208, -147.669)
+minor2 <- c(-15.065, -147.550)
 
-shift <- c(0, ...)
+shift <- c(0, .7)
 
-create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, atoll)
-fix_combine_data_frames()
-plots()
+big_ol_run <- function() {
+  start <- Sys.time()
+  create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, atoll)
+  print("fixing and combining frames\n")
+  fix_combine_data_frames()
+  print("data cleaned and merged successfully\n")
+  print("beginning plotting\n")
+  plots()
+  print("plots completed\n")
+  end <- Sys.time()
+  print(end - start)
+}
+
+big_ol_run()
+

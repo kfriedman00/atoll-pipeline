@@ -1,12 +1,9 @@
-ellipse_generation <- function(atoll, file_name_in, local, major1, major2, minor1, minor2, center){
-  #read in downloaded data
-  sst_data <- read.csv(file_name_in, stringsAsFactors = FALSE) 
-  square <- filter(sst_data, location == local)
-  
-  #calculate vectors of axis of ellipse
+ellipse_generation <- function(square, major1, major2, minor1, minor2, center){
+    #calculate vectors of axis of ellipse
   majoraxis <- c(major2[1] - major1[1], major2[2] - major1[2])/2
   minoraxis <- c(minor2[1] - minor1[1], minor2[2] - minor1[2])/2
   
+  print(length(square[1,]))
   #function to find the center point of ellipse
   get_center <- function(pt1, pt2, pt3, pt4) {
     midpt1 <- c((pt1[1] + pt2[1]) / 2, (pt1[2] + pt2[2]) / 2)
@@ -60,14 +57,11 @@ ellipse_generation <- function(atoll, file_name_in, local, major1, major2, minor
   angle <- get_theta(majoraxis + center)
   r_major <- pointDistance(major1, major2, lonlat = FALSE) / 2
   r_minor <- pointDistance(minor1, minor2, lonlat = FALSE) / 2
-  c1 <- r_major * cos(angle)
-  c2 <- r_minor * sin(angle)
-  c3 <- r_major * sin(angle)
-  c4 <- r_minor * cos(angle)
   
   #get info for data from one day, add row w/ true and false repeating, then filter             
-  day_dat <- unique(square[,3:4])
+  day_dat <- unique(square[,c("latitude", "longitude")])
   inside <- apply(day_dat, 1, is_inside)
+  
   inside_data <- square[inside,]
   return(inside_data)
 }
