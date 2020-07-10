@@ -5,10 +5,10 @@ library(tidyverse)
 library(fishualize)
 library(gganimate)
 library(ggplot2)
-source("PUT PATH TO THE ellipse_generation.R FILE HERE")
+source("/Users/sriramsundararajan/Desktop/BSURP/ellipse_generation.R")
 
 ##You need to change the directory above and the path directories in the first function, that's it
-path_to_wd <<- "INSERT PATH TO atolls HERE. PATH MUST END WITH FORWARD SLASH"
+path_to_wd <<- "/Users/sriramsundararajan/Desktop/BSURP/atolls/"
 setwd(path_to_wd)
 
 ##Creates path names, directories, urls, file names, and downloads unprocessed data files (if they don't exist)
@@ -19,106 +19,147 @@ create_url_and_files <- function(server, sst_id, start_date, end_date, lat, long
   if (!dir.exists(path_to_atoll) ) {dir.create(path_to_atoll)}
   if (!dir.exists(path_to_plots) ) {dir.create(path_to_plots)}
   if (!dir.exists(path_to_data) ) {dir.create(path_to_data)}
-  cat(green("DIRECTORIES SUCCESSFULLY CREATED") %+% "\n")
-  
+
   inside_url <<- paste0(server, sst_id, "[", "(", start_date, ")", ":1:", "(", end_date, ")", "]", "[", "(", lat$min, ")", ":1:", "(", lat$max, ")", "]", "[", "(", long_in$min, ")", ":1:", "(", long_in$max, ")","]" )
-  outside_url <<- paste0(server, sst_id, "[", "(", start_date, ")", ":1:", "(", end_date, ")", "]", "[", "(", lat$min, ")", ":1:", "(", lat$max, ")", "]", "[", "(", long_in$min+shift[2], ")", ":1:", "(", long_in$max+shift[2], ")","]" )
+  outside_url <<- paste0(server, sst_id, "[", "(", start_date, ")", ":1:", "(", end_date, ")", "]", "[", "(", lat$min, ")", ":1:", "(", lat$max, ")", "]", "[", "(", long_out$min, ")", ":1:", "(", long_out$max, ")","]" )
   inside_file <<- paste0(atoll, "/Data/", atoll, "_inside_sst.csv")
   outside_file <<- paste0(atoll, "/Data/", atoll, "_outside_sst.csv")
   
-  cat(red("FILE DOWNLOAD COMMENCING") %+% "\n")
   if(!file.exists(inside_file)) curl::curl_download(inside_url, inside_file)
-  cat(green("INSIDE ATOLL DATA SUCCESSFULLY DOWNLOADED") %+% "\n")
   if(!file.exists(outside_file)) curl::curl_download(outside_url, outside_file)
-  cat(green("OUTSIDE ATOLL DATA SUCCESSFULLY DOWNLOADED") %+% "\n")
 }
 
 ##"Fixes" data frames (column class types, etc), combines them, and runs the ellipse_generation function
+
+
+# fix_combine_data_frames <- function(inside_file, outside_file, atoll, major1, major2, minor1, minor2) {
+#   inside <- read.csv(inside_file, stringsAsFactors = FALSE)
+#   outside <- read.csv(outside_file, stringsAsFactors = FALSE)
+#   
+#   #####
+#   inside = inside[-1,]
+#   inside$latitude = as.numeric(as.character(inside$latitude))
+#   inside$longitude = as.numeric(as.character(inside$longitude))
+#   inside$analysed_sst = as.numeric(as.character(inside$analysed_sst))
+#   lapply(inside, class)
+#   
+#   
+#   outside = outside[-1,]
+#   outside$latitude = as.numeric(as.character(outside$latitude))
+#   outside$longitude = as.numeric(as.character(outside$longitude))
+#   outside$analysed_sst = as.numeric(as.character(outside$analysed_sst))
+#   lapply(outside, class)
+#   
+#   
+#   lapply(inside, class)
+#   lapply(outside, class)
+#   
+#   
+#   inside_ellipse <- ellipse_generation(atoll, inside, major1, major2, minor1, minor2)
+#   outside_ellipse <- ellipse_generation(atoll, outside, major1 + shift, major2+shift, minor1+shift, minor2+shift)
+#   
+#   outside_ellipse  = outside %>% mutate(
+#     location  = as.factor("O")
+#   )
+#   outside_ellipse = inside %>% mutate(
+#     location = as.factor("I")
+#   )
+#   
+#   ellipses <- rbind(inside_ellipse, outside_ellipse)
+#   ellipses$time <- as.character(ellipses$time)
+#   ellipses$date <- as.Date(sapply(ellipses$time, function(x) strsplit(x, "T")[[1]][1]))
+#   
+#   
+#   ellipses$month <- lubridate::month(ellipses$date)
+#   ellipses$year <- lubridate::year(ellipses$date)
+#   
+#   write.csv(ellipses, paste0(atoll, "/Data/", atoll, "_processed_data.csv"))
+#   print("Ellipses (after ellipse generation):")
+#   print(head(ellipses))
+#   return(ellipses)
+#}
+
 fix_combine_data_frames <- function() {
-  inside <- read.csv(inside_file)
-  outside <- read.csv(outside_file)
-  
-  cat(blue("COMBINING SQUARE DATA NOW")%+% "\n")
-  #####
-  inside = inside[-1,]
-  inside$latitude = as.numeric(as.character(inside$latitude))
-  inside$longitude = as.numeric(as.character(inside$longitude))
-  inside$analysed_sst = as.numeric(as.character(inside$analysed_sst))
-  inside$time = as.character(inside$time)
-  inside$date <- as.Date(sapply(inside$time, function(x) strsplit(x, "T")[[1]][1]))
-  inside$month <- lubridate::month(inside$date)
-  inside$year <- lubridate::year(inside$date)
-  lapply(inside, class)
-  
-  
-  outside = outside[-1,]
-  outside$latitude = as.numeric(as.character(outside$latitude))
-  outside$longitude = as.numeric(as.character(outside$longitude))
-  outside$analysed_sst = as.numeric(as.character(outside$analysed_sst))
-  outside$time = as.character(outside$time)
-  outside$date <- as.Date(sapply(outside$time, function(x) strsplit(x, "T")[[1]][1]))
-  outside$month <- lubridate::month(outside$date)
-  outside$year <- lubridate::year(outside$date)
-  lapply(outside, class)
-  
-  outside  = outside %>% mutate(
-    location  = as.factor("O")
-  )
-  inside = inside %>% mutate(
-    location = as.factor("I")
-  )
-  #####
-  
-  lapply(inside, class)
-  lapply(outside, class)
-  
-  
-  Full <<- rbind(outside, inside)
-  Full$location = as.factor(Full$location)
-  write.csv(Full, paste0(atoll, "/Data/", atoll, "_full.csv"))
-  cat(green("SQUARE DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _full.csv") %+% "\n")
-  print("Full (before ellipse generation):")
-  print(head(Full))
-  
-  cat(green("CREATING ELLIPTICAL MASKS NOW") %+% "\n")
-  inside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "I", major1, major2, minor1, minor2)
-  outside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "O", major1+shift, major2+shift, minor1+shift, minor2+shift)
-  
-  #####
-  inside_ellipse = inside_ellipse[-1,]
-  inside_ellipse$latitude = as.numeric(as.character(inside_ellipse$latitude))
-  inside_ellipse$longitude = as.numeric(as.character(inside_ellipse$longitude))
-  inside_ellipse$analysed_sst = as.numeric(as.character(inside_ellipse$analysed_sst))
-  inside_ellipse$time = as.character(inside_ellipse$time)
-  inside_ellipse$date <- as.Date(sapply(inside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
-  inside_ellipse$month <- lubridate::month(inside_ellipse$date)
-  inside_ellipse$year <- lubridate::year(inside_ellipse$date)
-  lapply(inside_ellipse, class)
-  
-  
-  outside_ellipse = outside_ellipse[-1,]
-  outside_ellipse$latitude = as.numeric(as.character(outside_ellipse$latitude))
-  outside_ellipse$longitude = as.numeric(as.character(outside_ellipse$longitude))
-  outside_ellipse$analysed_sst = as.numeric(as.character(outside_ellipse$analysed_sst))
-  outside_ellipse$time = as.character(outside_ellipse$time)
-  outside_ellipse$date <- as.Date(sapply(outside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
-  outside_ellipse$month <- lubridate::month(outside_ellipse$date)
-  outside_ellipse$year <- lubridate::year(outside_ellipse$date)
-  lapply(outside_ellipse, class)
-  
-  outside_ellipse  = outside_ellipse %>% mutate(
-    location  = as.factor("O")
-  )
-  inside_ellipse = inside_ellipse %>% mutate(
-    location = as.factor("I")
-  )
-  #####
-  
-  ellipses <<- rbind(inside_ellipse, outside_ellipse)[,-1]
-  write.csv(ellipses, paste0(atoll, "/Data/", atoll, "_processed_data.csv"))
-  cat(green("ELLIPTICAL DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _processed_data.csv") %+% "\n")
-  print("Ellipses (after ellipse generation):")
-  print(head(ellipses))
+inside <- read.csv(inside_file)
+outside <- read.csv(outside_file)
+
+#####
+inside = inside[-1,]
+inside$latitude = as.numeric(as.character(inside$latitude))
+inside$longitude = as.numeric(as.character(inside$longitude))
+inside$analysed_sst = as.numeric(as.character(inside$analysed_sst))
+inside$time = as.character(inside$time)
+inside$date <- as.Date(sapply(inside$time, function(x) strsplit(x, "T")[[1]][1]))
+inside$month <- lubridate::month(inside$date)
+inside$year <- lubridate::year(inside$date)
+lapply(inside, class)
+
+
+outside = outside[-1,]
+outside$latitude = as.numeric(as.character(outside$latitude))
+outside$longitude = as.numeric(as.character(outside$longitude))
+outside$analysed_sst = as.numeric(as.character(outside$analysed_sst))
+outside$time = as.character(outside$time)
+outside$date <- as.Date(sapply(outside$time, function(x) strsplit(x, "T")[[1]][1]))
+outside$month <- lubridate::month(outside$date)
+outside$year <- lubridate::year(outside$date)
+lapply(outside, class)
+
+outside  = outside %>% mutate(
+  location  = as.factor("O")
+)
+inside = inside %>% mutate(
+  location = as.factor("I")
+)
+#####
+
+lapply(inside, class)
+lapply(outside, class)
+
+
+Full <<- rbind(outside, inside)
+Full$location = as.factor(Full$location)
+write.csv(Full, paste0(atoll, "/Data/", atoll, "_full.csv"))
+print("Full (before ellipse generation):")
+print(head(Full))
+
+inside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "I", major1, major2, minor1, minor2)
+outside_ellipse <- ellipse_generation(atoll, paste0(atoll, "/Data/", atoll, "_full.csv"), "O", major1+shift, major2+shift, minor1+shift, minor2+shift)
+
+#####
+inside_ellipse = inside_ellipse[-1,]
+inside_ellipse$latitude = as.numeric(as.character(inside_ellipse$latitude))
+inside_ellipse$longitude = as.numeric(as.character(inside_ellipse$longitude))
+inside_ellipse$analysed_sst = as.numeric(as.character(inside_ellipse$analysed_sst))
+inside_ellipse$time = as.character(inside_ellipse$time)
+inside_ellipse$date <- as.Date(sapply(inside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
+inside_ellipse$month <- lubridate::month(inside_ellipse$date)
+inside_ellipse$year <- lubridate::year(inside_ellipse$date)
+lapply(inside_ellipse, class)
+
+
+outside_ellipse = outside_ellipse[-1,]
+outside_ellipse$latitude = as.numeric(as.character(outside_ellipse$latitude))
+outside_ellipse$longitude = as.numeric(as.character(outside_ellipse$longitude))
+outside_ellipse$analysed_sst = as.numeric(as.character(outside_ellipse$analysed_sst))
+outside_ellipse$time = as.character(outside_ellipse$time)
+outside_ellipse$date <- as.Date(sapply(outside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
+outside_ellipse$month <- lubridate::month(outside_ellipse$date)
+outside_ellipse$year <- lubridate::year(outside_ellipse$date)
+lapply(outside_ellipse, class)
+
+outside_ellipse  = outside_ellipse %>% mutate(
+  location  = as.factor("O")
+)
+inside_ellipse = inside_ellipse %>% mutate(
+  location = as.factor("I")
+)
+#####
+
+ellipses <<- rbind(inside_ellipse, outside_ellipse)[,-1]
+write.csv(ellipses, paste0(atoll, "/Data/", atoll, "_processed_data.csv"))
+print("Ellipses (after ellipse generation):")
+print(head(ellipses))
 }
 
 ##Runs all of Sriram's data analysis, creates the plots, and spits them out into the plots folder as .png's
@@ -709,17 +750,11 @@ plots <- function(){
     geom_smooth(aes(x=date, y= n_runs_over_1_m, group = location, color = location), se = F) +
     ggtitle("Monthly #of Runs After 2015")
 }
-  
-ellipse_area <- function(major1, major2, minor1, minor2){
-  major_dist <- sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
-  minor_dist <- sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
-  area <- pi*major_dist*minor_dist
-  return(area)
-}
 
 ##Just runs everything at once
 big_ol_run <- function() {
   create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, long_out, atoll)
+  #fix_combine_data_frames(inside_file, outside_file, atoll, major1, major2, minor1, minor2)
   fix_combine_data_frames()
   plots()
 }
@@ -727,23 +762,26 @@ big_ol_run <- function() {
 ##INPUT THIS INFORMATION THEN RUN SCRIPTS; Remember to change out the info for each atoll, but this is all you need to change
 server <- "https://coastwatch.pfeg.noaa.gov/erddap/griddap/"
 sst_id <- "jplMURSST41.csv?analysed_sst"
-lat <- list (min = ..., max = ...)
-long_in <- list(min = ..., max = ...)
+lat <- list (min = 9.02, max = 9.32)
+long_in <- list(min = 167.33, max = 167.63)
+shift <- c(0, 0.5)
+long_out <- list(min = (as.numeric(long_in[1])+shift[2]), max = (as.numeric(long_in[2])+shift[2]))
 start_date <- as.Date("2002-06-22T09:00:00Z")
 end_date <- as.Date("2020-06-22T09:00:00Z")
-atoll <- "PUT ATOLL NAME HERE"
-                                         
-#degrees above max monthly mean that is counted
+atoll <- "Kwajelein"
+
+#degrees above max monthly mean that matters
 bleaching_threshold_C = 0.5
 degree_day_threshold = 0
 
-major1 <- c(..., ...)
-major2 <- c(..., ...)
-minor1 <- c(..., ...)
-minor2 <- c(..., ...)
+major1 <- c(9.28924, 167.3501)
+major2 <- c(9.08047, 167.6275)
+minor1 <- c(9.11949, 167.42603)
+minor2 <- c(9.26929, 167.52696)
 
-shift <- c(0, ...)
 
-create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, atoll)
-fix_combine_data_frames()
-plots()
+
+#create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, long_out, atoll)
+#fix_combine_data_frames()
+#plots()
+big_ol_run()
