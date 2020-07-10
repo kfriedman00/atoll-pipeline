@@ -5,6 +5,7 @@ library(tidyverse)
 library(fishualize)
 library(gganimate)
 library(ggplot2)
+library(crayon)
 source("PUT PATH TO THE ellipse_generation.R FILE HERE")
 
 ##You need to change the directory above and the path directories in the first function, that's it
