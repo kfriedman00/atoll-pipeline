@@ -134,6 +134,14 @@ fix_combine_data_frames <- function() {
           
           cat(green("DATA PROCESSING COMPLETED") %+% "\n")
 }
+                                             
+ellipse_area <- function(major1, major2, minor1, minor2){
+  major_dist <- 0.5*sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
+  minor_dist <- 0.5*sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
+  area <- 12321*pi*major_dist*minor_dist
+  return(area)
+}
+
 
 ##Runs all of Sriram's data analysis, creates the plots, and spits them out into the plots folder as .png's
 plots <- function(){
@@ -723,17 +731,10 @@ plots <- function(){
                                           ellipse_area_function, ellipse_area_points))
  
   
-   write.csv(overall_values, paste0(path_to_data, "/", atoll, "Overall_Values.csv"))
+  write.csv(overall_values, paste0(path_to_data, "/", atoll, "_Overall_Values.csv"))
   cat(green("PLOTS SUCCESSFULLY DOWNLOADED"))
 }
   
-ellipse_area <- function(major1, major2, minor1, minor2){
-  major_dist <- 0.5*sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
-  minor_dist <- 0.5*sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
-  area <- 12321*pi*major_dist*minor_dist
-  return(area)
-}
-
 ##Just runs everything at once
 big_ol_run <- function() {
   create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, long_out, atoll)
