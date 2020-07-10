@@ -642,18 +642,23 @@ plots <- function(){
   ggsave(file = paste0(path_to_plots, "/max_sst_in.png"), max_sst_in)
   ########
   
+  ellipse_area_function <<- ellipse_area(major1, major2, minor1, minor2)
+  ellipse_area_points <<- 1.2321*n_points
+  
   overall_values <<- data.frame( Variable = c("Percent Days Bleached Inside", "Percent Days Bleached Outside", 
                                        "Degree Days Inside", "Degree Days Outside",
                                        "Max Mean Summer Monthly Inside", "Max Mean Summer Monthly Outside", "Average Run Length Inside",
                                        "Average Run Length Outside", "Average Degree Days/ Run Inside", "Average Degree Days/ Run Outside",
-                                       "Multi Day Runs Inside", "Multi Day Runs Outside"), 
+                                       "Multi Day Runs Inside", "Multi Day Runs Outside",
+                                             "Ellipse Area (Functional)", "Ellipse Area (Points)"), 
                                  Value = c(percent_days_bleach_inside, percent_days_bleach_outside,
                                        degree_days_inside, degree_days_outside,
                                        inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, avg_run_inside, avg_run_outside,
-                                       avg_degree_days_inside, avg_degree_days_outside, n_multi_day_runs_inside, n_multi_day_runs_outside))
+                                       avg_degree_days_inside, avg_degree_days_outside, n_multi_day_runs_inside, n_multi_day_runs_outside,
+                                          ellipse_area_function, ellipse_area_points))
  
   
-   write.csv(overall_values, paste0(path_to_data, "/Overall_Values.csv"))
+   write.csv(overall_values, paste0(path_to_data, "/", atoll, "Overall_Values.csv"))
 
   
   heat_histogram_total = ellipses %>%
