@@ -675,43 +675,50 @@ plots <- function(){
   ggsave(file = paste0(path_to_plots, "/histogram_total.png"), heat_histogram_total)
   
   
-  yearly_total <<- rbind(inside_yearly, outside_yearly)
+  yearly_degree_days <- yearly_total <<- rbind(inside_yearly, outside_yearly)
   yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= degreedays_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= degreedays_year, group = location, color = location), se = F) +
     ggtitle("Yearly degree days") 
   
-  yearly_total %>%
+  ggsave(file = paste0(path_to_plots, "/yearly-degree_days.png"), yearly_degree_days)
+  
+  yearly_mean_run_length <- yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= run_length_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= run_length_year, group = location, color = location), se = F) +
     ggtitle("Yearly Mean Run Length")
+  ggsave(file = paste0(path_to_plots, "/yearly_mean_run_length.png"), yearly_mean_run_length)
   
-  yearly_total %>%
+  yearly_num_of_runs <- yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= n_runs_over_1, group = location, color = location)) +
     geom_smooth(aes(x=year, y= n_runs_over_1, group = location, color = location), se = F) +
     ggtitle("Yearly #of Runs")
- 
-  yearly_total %>%
+  ggsave(file = paste0(path_to_plots, "/yearly_num_of_runs.png"), yearly_num_of_runs)
+  
+  monthly_degree_days <- yearly_total %>%
     ggplot() +
     geom_point(aes(x=date, y= degreedays_month, group = location, color = location)) +
     geom_smooth(aes(x=date, y= degreedays_month, group = location, color = location), se = F) +
     ggtitle("Monthly Degreedays")
+  ggsave(file = paste0(path_to_plots, "/monthly_degree_days.png"), monthly_degree_days)
   
-  yearly_total %>%
+  monthly_mean_run_length <- yearly_total %>%
     ggplot() +
     geom_point(aes(x=date, y= run_length_month, group = location, color = location)) +
     geom_smooth(aes(x=date, y= run_length_month, group = location, color = location), se = F) +
     ggtitle("Monthly Mean Run Length")
+  ggsave(file = paste0(path_to_plots, "/monthly_mean_run_length.png"), monthly_mean_run_length)
   
-  yearly_total %>%
+  monthly_num_of_runs_after_2015 <- yearly_total %>%
     filter(year>2015) %>%
     ggplot() +
     geom_point(aes(x=date, y= n_runs_over_1_m, group = location, color = location)) +
     geom_smooth(aes(x=date, y= n_runs_over_1_m, group = location, color = location), se = F) +
     ggtitle("Monthly #of Runs After 2015")
+  ggsave(file = paste0(path_to_plots, "/monthly_num_of_runs_after_2015.png"), monthly_num_of_runs_after_2015)
   ########
   
   
