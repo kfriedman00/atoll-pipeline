@@ -646,8 +646,7 @@ plots <- function(){
     #      panel.grid.minor = element_blank(), panel.background = element_rect(fill = NA)) +
     labs(fill = "Max Sea Surface \nTemperature (Celcius)") +
     theme(legend.title = element_text(size = 8, colour = "red", hjust = 0.5))+
-    ylab("Latitude") + xlab("Longitude") +
-    coord_cartesian(xlim = c(167.33, 167.63), ylim=c(9.02, 9.32))
+    ylab("Latitude") + xlab("Longitude")
   # dev.off()
   
   ggsave(file = paste0(path_to_plots, "/max_sst_in.png"), max_sst_in)
@@ -728,9 +727,9 @@ plots <- function(){
 }
   
 ellipse_area <- function(major1, major2, minor1, minor2){
-  major_dist <- sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
-  minor_dist <- sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
-  area <- pi*major_dist*minor_dist
+  major_dist <- 0.5*sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
+  minor_dist <- 0.5*sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
+  area <- 12321*pi*major_dist*minor_dist
   return(area)
 }
 
