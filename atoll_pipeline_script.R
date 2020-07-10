@@ -675,14 +675,15 @@ plots <- function(){
   ggsave(file = paste0(path_to_plots, "/histogram_total.png"), heat_histogram_total)
   
   
-  yearly_degree_days <- yearly_total <<- rbind(inside_yearly, outside_yearly)
-  yearly_total %>%
+  yearly_total <<- rbind(inside_yearly, outside_yearly)
+  
+  yearly_degree_days <- yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= degreedays_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= degreedays_year, group = location, color = location), se = F) +
     ggtitle("Yearly degree days") 
   
-  ggsave(file = paste0(path_to_plots, "/yearly-degree_days.png"), yearly_degree_days)
+  ggsave(file = paste0(path_to_plots, "/yearly_degree_days.png"), yearly_degree_days)
   
   yearly_mean_run_length <- yearly_total %>%
     ggplot() +
