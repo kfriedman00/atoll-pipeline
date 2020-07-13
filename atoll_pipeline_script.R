@@ -674,6 +674,7 @@ sst_id <- "jplMURSST41.csv?analysed_sst"
 lat <- list (min = ..., max = ...)
 long_in <- list(min = ..., max = ...)
 start_date <- as.Date("...T09:00:00Z")
+#using the current year is not recomended                                         
 end_date <- as.Date("...T09:00:00Z")
 atoll <- "Kwajelein"
 
