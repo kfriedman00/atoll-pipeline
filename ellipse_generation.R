@@ -6,10 +6,10 @@ library(fishualize)
 library(gganimate)
 library(ggplot2)
 library(crayon)
-source("/Users/sriramsundararajan/Desktop/test_elipse.R")
+source("...")
 
 ##You need to change the directory above and the path directories in the first function, that's it
-path_to_wd <<- "/Users/sriramsundararajan/Desktop/BSURP/atolls/"
+path_to_wd <<- "..."
 setwd(path_to_wd)
 
 
@@ -671,20 +671,20 @@ big_ol_run <- function() {
 ##INPUT THIS INFORMATION THEN RUN SCRIPTS; Remember to change out the info for each atoll, but this is all you need to change
 server <- "https://coastwatch.pfeg.noaa.gov/erddap/griddap/"
 sst_id <- "jplMURSST41.csv?analysed_sst"
-lat <- list (min = 9.02, max = 9.32)
-long_in <- list(min = 167.33, max = 167.63)
-start_date <- as.Date("2002-06-22T09:00:00Z")
-end_date <- as.Date("2020-06-22T09:00:00Z")
-atoll <- "Kwajelein"
+lat <- list (min = ..., max = ...)
+long_in <- list(min = ..., max = ...)
+start_date <- as.Date("...T09:00:00Z")
+end_date <- as.Date("...T09:00:00Z")
+atoll <- "..."
 
 #degrees above max monthly mean that is counted
 bleaching_threshold_C = 0.5
 degree_day_threshold = 0
 
-major1 <- c(9.28924, 167.3501)
-major2 <- c(9.08047, 167.6275)
-minor1 <- c(9.11949, 167.42603)
-minor2 <- c(9.26929, 167.52696)
+major1 <- c(..., ...)
+major2 <- c(..., ...)
+minor1 <- c(..., ...)
+minor2 <- c(..., ...)
 
 shift <- c(0, .5)
 
@@ -702,4 +702,3 @@ big_ol_run <- function() {
 }
 
 big_ol_run()
-rm(ellipses)
