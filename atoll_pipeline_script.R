@@ -5,6 +5,7 @@ library(tidyverse)
 library(fishualize)
 library(gganimate)
 library(ggplot2)
+library(ggpubr)
 library(crayon)
 source("...")
 
@@ -29,14 +30,15 @@ create_url_and_files <- function(server, sst_id, start_date, end_date, lat, long
   outside_file <<- paste0(atoll, "/Data/", atoll, "_outside_sst.csv")
   
   cat(blue("FILE DOWNLOAD COMMENCING") %+% "\n")
-  if(!file.exists(inside_file)) curl::curl_download(inside_url, inside_file)
+  if(!file.exists(inside_file)) curl::curl_download(inside_url, inside_file, quiet=F)
   cat(green("INSIDE ATOLL DATA SUCCESSFULLY DOWNLOADED") %+% "\n")
-  if(!file.exists(outside_file)) curl::curl_download(outside_url, outside_file)
+  if(!file.exists(outside_file)) curl::curl_download(outside_url, outside_file, quiet=F)
   cat(green("OUTSIDE ATOLL DATA SUCCESSFULLY DOWNLOADED") %+% "\n")
 }
 
 ##"Fixes" data frames (column class types, etc), combines them, and runs the ellipse_generation function
 fix_combine_data_frames <- function() {
+  cat(blue("FIXING AND COMBINING DATA FRAMES"))
   inside <- read.csv(inside_file, stringsAsFactors = FALSE)
   outside <- read.csv(outside_file, stringsAsFactors = FALSE)
   
@@ -103,15 +105,16 @@ fix_combine_data_frames <- function() {
 plots <- function(){
   #average temperature by plot over time
   #######
+  cat(blue("GENERATING PLOTS"))
   
   temp_over_time1 <- ellipses %>%
     group_by(location, year, date) %>%
     summarise(Mean = mean(analysed_sst)) %>%
     ggplot(aes(date, Mean, color = location, group = location)) +
     geom_point() + geom_smooth(se = F) +
-    ggtitle(paste(atoll, "Temperature over Years")) + 
+    ggtitle(paste(atoll, "Temperature Over Years")) + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
-    xlab("Date") + ylab("Location Average (Celcius)") 
+    xlab("Date") + ylab("Location Average (Celsius)") 
   
   ggsave(file = paste0(path_to_plots, "/TempOverTime1.png"), temp_over_time1)
   
@@ -120,9 +123,9 @@ plots <- function(){
     summarise(Mean = mean(analysed_sst)) %>%
     ggplot(aes(date, Mean, color = location, group = location)) +
     geom_point(alpha = 0.05) + geom_smooth(se = F) +
-    ggtitle(paste(atoll, "Temperature over Years")) + 
+    ggtitle(paste(atoll, "Temperature Over Years")) + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) +
-    xlab("Date") + ylab("Location Average (Celcius)") 
+    xlab("Date") + ylab("Location Average (Celsius)") 
   
   ggsave(file = paste0(path_to_plots, "/TempOverTime2.png"), temp_over_time2)
   
@@ -184,7 +187,8 @@ plots <- function(){
   percent_days_bleach_inside <<- (sum(inside_day$bleached)*100)/nrow(inside_day)
   percent_days_bleach_outside <<- (sum(outside_day$bleached)*100)/nrow(outside_day)
   
-  days_in_dataset <<- nrow(outside_day)
+  days_in_dataset_outside <<- nrow(outside_day)
+  days_in_dataset_inside <<- nrow(inside_day)
   
   #_______________________________________________________________________
   inside_day = inside_day %>%
@@ -310,25 +314,25 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = mean_monthly_max)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
-    ggtitle(paste(atoll, "Mean Monthly Max Outside")) +
-    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
-    labs(fill = "Mean Monthly Max") +
+    labs(fill = "Mean Monthly Max (Celsius)") +
     theme(legend.title = element_text(color = "red", hjust = 0.5))
-  ggsave(file = paste0(path_to_plots, "/mmm_outside.png"), outside_mmm)
+  
   
   inside_mmm <- inside %>%
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = mean_monthly_max)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
-    ggtitle(paste(atoll, "Mean Monthly Max Inside")) +
-    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
-    labs(fill = "Mean Monthly Max") +
+    labs(fill = "Mean Monthly Max (Celsius") +
     theme(legend.title = element_text(color = "red", hjust = 0.5))
-  ggsave(file = paste0(path_to_plots, "/mmm_inside.png"), inside_mmm)
   
-    
+  combined_mmm <- ggarrange(inside_mmm, outside_mmm, labels=c("Inside", "Outside"), ncol=1, nrow=2)
+  combined_mmm_plot <- annotate_figure(combined_mmm, top = "Mean Monthly Maximum")
+  
+  ggsave(file = paste0(path_to_plots, "/mean_monthly_maximum.png"), combined_mmm_plot)
+  
+  
   inside = inside %>%
     mutate(
       point_bleach = analysed_sst> (mean_monthly_max + bleaching_threshold_C)
@@ -401,7 +405,7 @@ plots <- function(){
   inside_degreeday =  inside_degreeday%>%
     group_by(latitude, longitude) %>%
     filter(!duplicated(year) )
-
+  
   inside_degreeday = inside_degreeday[c("latitude","longitude","year","degree_days_year", "run_length_year", "n_multiday_runs")]
   
   outside_degreeday <<- outside %>% 
@@ -458,13 +462,9 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = degree_days_year)) +
     #scale_fill_gradientn(colours=viridis::plasma(5)) +
-    ggtitle(paste(atoll, "Degree Days Outside\n 2015")) +  
-    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Degree Days") +
     theme(legend.title = element_text(color = "red", hjust = 0.5))
-  
-  ggsave(file = paste0(path_to_plots, "/degree_days_outside_2016.png"), degree_days_outside_2016)
   
   degree_days_inside_2016 <- inside_degreeday %>% 
     group_by(latitude, longitude) %>% 
@@ -473,13 +473,15 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = degree_days_year)) +
     #scale_fill_gradientn(colours=viridis::plasma(5)) +
-    ggtitle(paste(atoll, "Degree Days Inside\n 2015")) +  
-    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Degree Days") +
     theme(legend.title = element_text(color = "red", hjust = 0.5))
   
-  ggsave(file = paste0(path_to_plots, "/degree_days_inside_2016.png"), degree_days_inside_2016)
+  degree_days_plot <- ggarrange(degree_days_inside_2016, degree_days_outside_2016, 
+                                labels=c("Inside", "Outside"), ncol=1, nrow=2)
+  degree_days_plotty <- annotate_figure(degree_days_plot, top = "Degree Days 2016")
+  
+  ggsave(file = paste0(path_to_plots, "/degree_days_2016.png"), degree_days_plotty)
   
   
   # tiff(filename=paste0(path_to_plots, "/bleachOutside.tiff"),
@@ -490,14 +492,11 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = time_bleached)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
-    ggtitle(paste(atoll, "Percent Days Bleached Outside")) +
-    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
+    
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Percent Days \nBleached") +
     theme(legend.title = element_text(color = "red", hjust = 0.5))
   #dev.off()
-  
-  ggsave(file = paste0(path_to_plots, "/bleach_outside.png"), bleach_outside_graph)
   
   # tiff(filename=paste0(path_to_plots, "/bleachInside.tiff"),
   #      res=100, width=6, height=4, units="in", compression="lzw")
@@ -507,14 +506,17 @@ plots <- function(){
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = time_bleached)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
-    ggtitle(paste(atoll, "Percent Days Bleached Inside")) +
-    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
+    
     ylab("Latitude") + xlab("Longitude") +
     labs(fill = "Percent Days \nBleached") +
     theme(legend.title = element_text(color = "red", hjust = 0.5))
   #dev.off()
   
-  ggsave(file = paste0(path_to_plots, "/bleach_inside.png"), bleach_inside_graph)
+  percent_days_bleach <- ggarrange(bleach_inside_graph, bleach_outside_graph, 
+                                   labels=c("Inside", "Outside"), ncol=1, nrow=2)
+  percent_days_bleach_plot <- annotate_figure(percent_days_bleach, top = "Percent Days Bleached")
+  
+  ggsave(file = paste0(path_to_plots, "/percent_days_bleached.png"), percent_days_bleach_plot)
   
   #####
   
@@ -527,44 +529,41 @@ plots <- function(){
   #      res=100, width=6, height=4, units="in", compression="lzw")
   max_sst_out <- outside %>% 
     group_by(latitude, longitude) %>%
-    filter(year == 2015) %>%
+    filter(year == 2016) %>%
     summarise(sst = max(analysed_sst)) %>% 
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = sst)) + 
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(29.9, 30.5)) +
-    ggtitle(paste(atoll, "Sea Surface Temp \n2015 Outside")) + 
-    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     #dashed lines
     # theme(panel.grid.major = element_line(color = 'black', linetype = 'dashed'), panel.ontop = T,
     #       panel.grid.minor = element_blank(), panel.background = element_rect(fill = NA)) +
-    labs(fill = "Max Sea Surface \nTemperature (Celcius)") +
+    labs(fill = "Max Sea Surface \nTemperature (Celsius)") +
     theme(legend.title = element_text(size = 8, colour = "red", hjust = 0.5))+
     ylab("Latitude") + xlab("Longitude")
   # dev.off()
-  
-  ggsave(file = paste0(path_to_plots, "/max_sst_out.png"), max_sst_out)
   
   # tiff(filename=paste0(path_to_plots, "/maxTemp2015Outside.tiff"), 
   #      res=100, width=6, height=4, units="in", compression="lzw")
   max_sst_in <- ellipses %>% 
     group_by(latitude, longitude) %>%
-    filter(location == "I", year == 2015) %>%
+    filter(location == "I", year == 2016) %>%
     summarise(sst = max(analysed_sst)) %>% 
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = sst)) + 
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(29.9, 30.5)) +
-    ggtitle(paste(atoll, "Sea Surface Temp \n2015 Inside")) + 
-    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
     #dashed lines
     #theme(panel.grid.major = element_line(color = 'black', linetype = 'dashed'), panel.ontop = T,
     #      panel.grid.minor = element_blank(), panel.background = element_rect(fill = NA)) +
-    labs(fill = "Max Sea Surface \nTemperature (Celcius)") +
+    labs(fill = "Max Sea Surface \nTemperature (Celsius)") +
     theme(legend.title = element_text(size = 8, colour = "red", hjust = 0.5))+
     ylab("Latitude") + xlab("Longitude")
   # dev.off()
   
-  ggsave(file = paste0(path_to_plots, "/max_sst_in.png"), max_sst_in)
+  max_sst_2016 <- ggarrange(max_sst_in, max_sst_out, labels=c("Inside", "Outside"), ncol=1, nrow=2)
+  max_sst_2016_plot <- annotate_figure(max_sst_2016, 
+                                       top = "Maximum Sea Surface Temperature \n 2016")
   
+  ggsave(file = paste0(path_to_plots, "/max_sst_2016.png"), max_sst_2016_plot)
   
   
   heat_histogram_total = ellipses %>%
@@ -573,9 +572,9 @@ plots <- function(){
     filter(Mean > outside_max_mean_summer_monthly) %>%
     ggplot(aes(Mean)) +
     geom_histogram(aes(x = Mean,group = location, color = location, fill= location),position = 'dodge') +
-    xlab("Mean Celcius") +
+    xlab("Mean Celsius") +
     ylab("Frequency") +
-    ggtitle(paste(atoll, "Mean Celcius by Day")) + 
+    ggtitle(paste(atoll, "Mean Celsius by Day")) + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) 
   ggsave(file = paste0(path_to_plots, "/histogram_total.png"), heat_histogram_total)
   
@@ -585,7 +584,7 @@ plots <- function(){
     ggplot() +
     geom_point(aes(x=year, y= degreedays_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= degreedays_year, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Yearly degree days")) + ylab("Total Degree Days")+ 
+    ggtitle(paste(atoll, "Yearly Degree Days")) + ylab("Total Degree Days")+ 
     theme(plot.title = element_text(color = "red", hjust = 0.5))  
   ggsave(file = paste0(path_to_plots, "/yearly_degree_days.png"), yearly_degree_days)
   
@@ -601,7 +600,7 @@ plots <- function(){
     ggplot() +
     geom_point(aes(x=year, y= n_runs_over_1, group = location, color = location)) +
     geom_smooth(aes(x=year, y= n_runs_over_1, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Yearly #of Runs")) + ylab("# of Multi Day Runs")+ 
+    ggtitle(paste(atoll, "Yearly Number of Runs")) + ylab("Number of Multiple Day Runs")+ 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) 
   ggsave(file = paste0(path_to_plots, "/yearly_runs.png"),  yearly_runs)
   
@@ -609,9 +608,9 @@ plots <- function(){
     ggplot() +
     geom_point(aes(x=date, y= degreedays_month, group = location, color = location)) +
     geom_smooth(aes(x=date, y= degreedays_month, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Monthly Degreedays")) + ylab("Total Monthly Degree Days")+ 
+    ggtitle(paste(atoll, "Monthly Degree Days")) + ylab("Total Monthly Degree Days")+ 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) 
-  ggsave(file = paste0(path_to_plots, "/monthly_degreeday.png"), monthly_degree_days)
+  ggsave(file = paste0(path_to_plots, "/monthly_degree_day.png"), monthly_degree_days)
   
   monthly_mean_run_l = yearly_total %>%
     ggplot() +
@@ -622,12 +621,11 @@ plots <- function(){
   ggsave(file = paste0(path_to_plots, "/monthly_run_length.png"), monthly_mean_run_l)
   
   monthly_runs = yearly_total %>%
-    filter(year>2015) %>%
     ggplot() +
     geom_point(aes(x=date, y= n_runs_over_1_m, group = location, color = location)) +
     geom_smooth(aes(x=date, y= n_runs_over_1_m, group = location, color = location), se = F) +
     ylab("# of Multi Day Runs")+
-    ggtitle(paste(atoll, "Monthly #of Runs After 2015"))+ 
+    ggtitle(paste(atoll, "Monthly Number of Runs"))+ 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) 
   ggsave(file = paste0(path_to_plots, "/monthly_runs.png"), monthly_runs)
   ########
@@ -637,20 +635,32 @@ plots <- function(){
   ellipse_area_points <<- 1.2321 * n_points
   
   
-  overall_values <<- data.frame( Variable = c("Percent Days Bleached Inside", "Percent Days Bleached Outside", 
+  overall_values <<- data.frame( Variable = c("Atoll Name", "Major 1, Lat", "Major 1, Long", "Major 2, Lat", "Major 2, Long",
+                                              "Minor 1, Lat", "Minor 1, Long", "Minor 2, Lat", "Minor 2, Long",
+                                              "Center, Lat", "Center, Long",
+                                              "Longitude Shift", "Bleaching Threshold (Celsius)", "Degree Day Threshold",
+                                              "Number of Days Inside", "Number of Days Outside",
+                                              "Percent Days Bleached Inside", "Percent Days Bleached Outside", 
                                               "Degree Days Inside", "Degree Days Outside",
-                                              "Max Mean Summer Monthly Inside", "Max Mean Summer Monthly Outside", "Average Run Length Inside",
-                                              "Average Run Length Outside", "Average Degree Days/ Run Inside", "Average Degree Days/ Run Outside",
+                                              "Max Mean Summer Monthly Inside (Celsius)", "Max Mean Summer Monthly Outside (Celsius)", 
+                                              "Average Run Length Inside (Days)",
+                                              "Average Run Length Outside (Days)", "Average Degree Days/ Run Inside", "Average Degree Days/ Run Outside",
                                               "Multi Day Runs Inside", "Multi Day Runs Outside",
-                                              "Ellipse Area (Functional)", "Ellipse Area (Points)"), 
-                                 Value = c(percent_days_bleach_inside, percent_days_bleach_outside,
+                                              "Ellipse Area (Functional, sq.km)", "Ellipse Area (Points, sq.km)"), 
+                                 Value = c(atoll, major1[1], major1[2], major2[1], major2[2],
+                                           minor1[1], minor1[2], minor2[1], minor2[2],
+                                           center[1], center[2],
+                                           shift[2], bleaching_threshold_C, degree_day_threshold,
+                                           days_in_dataset_inside, days_in_dataset_outside
+                                           percent_days_bleach_inside, percent_days_bleach_outside,
                                            degree_days_inside, degree_days_outside,
-                                           inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, avg_run_inside, avg_run_outside,
+                                           inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, 
+                                           avg_run_inside, avg_run_outside,
                                            avg_degree_days_inside, avg_degree_days_outside, n_multi_day_runs_inside, n_multi_day_runs_outside,
                                            ellipse_area_function, ellipse_area_points))
   
   
-  write.csv(overall_values, paste0(path_to_data, "/", atoll, "Overall_Values.csv"))
+  write.csv(overall_values, paste0(path_to_data, "/", atoll, "_Overall_Values.csv"))
   cat(green("PLOTS SUCCESSFULLY DOWNLOADED"))
 }
 
@@ -692,12 +702,8 @@ shift <- c(0, ...)
 big_ol_run <- function() {
   start <- Sys.time()
   create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, atoll)
-  print("fixing and combining frames")
   fix_combine_data_frames()
-  print("data cleaned and merged successfully")
-  print("beginning plotting")
   plots()
-  print("plots completed")
   end <- Sys.time()
   print(end - start)
 }
