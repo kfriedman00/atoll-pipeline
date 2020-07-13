@@ -6,10 +6,10 @@ library(fishualize)
 library(gganimate)
 library(ggplot2)
 library(crayon)
-source("C:/Users/kanoe/Documents/Research Data/BSURP/ellipse_generation.R")
+source("...")
 
 ##You need to change the directory above and the path directories in the first function, that's it
-path_to_wd <<- "C:/Users/kanoe/Documents/Research Data/BSURP/Atolls/"
+path_to_wd <<- "..."
 setwd(path_to_wd)
 
 
@@ -43,14 +43,14 @@ fix_combine_data_frames <- function() {
   inside = inside[-1,]
   inside$latitude <- as.numeric(as.character(inside$latitude))
   inside$longitude <- as.numeric(as.character(inside$longitude))
-  cat(red("BEEP"))
+  cat(red("BEEP "))
   inside$analysed_sst <- as.numeric(as.character(inside$analysed_sst))
   
   
   outside = outside[-1,]
   outside$latitude <- as.numeric(as.character(outside$latitude))
   outside$longitude <- as.numeric(as.character(outside$longitude))
-  cat(silver("BOP BOOP"))
+  cat(silver("BOP BOOP")%+% "\n")
   outside$analysed_sst <- as.numeric(as.character(outside$analysed_sst))
   
   print(length(inside$latitude))
@@ -62,7 +62,7 @@ fix_combine_data_frames <- function() {
   print(length(inside_ellipse[,1]))
   print(length(outside_ellipse[,1]))
   #####inside_ellipse$time = as.character(inside_ellipse$time)
-  cat(red("BOOOOOOOOP"))
+  cat(red("BOOOOOOOOP") %+% "\n")
   
   print(length(inside_ellipse$time))
   
@@ -73,12 +73,12 @@ fix_combine_data_frames <- function() {
   lapply(inside_ellipse, class)
   
   
-  cat(black("Fax machine crunching noise"))
+  cat(black("Fax machine crunching noise") %+% "\n")
   outside_ellipse$time <- as.character(outside_ellipse$time)
   outside_ellipse$date <- as.Date(sapply(outside_ellipse$time, function(x) strsplit(x, "T")[[1]][1]))
   outside_ellipse$month <- lubridate::month(outside_ellipse$date)
   outside_ellipse$year <- lubridate::year(outside_ellipse$date)
-  cat(silver("Elephant roar"))
+  cat(silver("Elephant roar") %+% "\n")
   lapply(outside_ellipse, class)
   
   outside_ellipse  = outside_ellipse %>% mutate(
@@ -87,7 +87,7 @@ fix_combine_data_frames <- function() {
   inside_ellipse = inside_ellipse %>% mutate(
     location = as.factor("I")
   )
-  cat(black("Do elephants roar??"))
+  cat(black("Do elephants roar??") %+% "\n")
   #####
   
   ellipses <<- rbind(inside_ellipse, outside_ellipse)[,-1]
@@ -95,8 +95,8 @@ fix_combine_data_frames <- function() {
   cat(green("ELLIPTICAL DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _processed_data.csv") %+% "\n")
   print("Ellipses (after ellipse generation):")
   print(head(ellipses))
-      
-  cat(green("DATA PROCESSING COMPLETED"))
+  
+  cat(green("DATA PROCESSING COMPLETED") %+% "\n")
 }
 
 ##Runs all of Sriram's data analysis, creates the plots, and spits them out into the plots folder as .png's
@@ -137,40 +137,23 @@ plots <- function(){
   #####
   inside_monthly = inside %>%
     group_by(year, month) %>%  
-    summarise(
-      monthly_avg = mean(analysed_sst)
-    ) %>%
-    filter(
-      !duplicated(month)
-    ) %>%
+    summarise(monthly_avg = mean(analysed_sst)) %>%
+    filter(!duplicated(month)) %>%
     ungroup() %>%
     group_by(year) %>%
     filter(
-      monthly_avg == max(monthly_avg)
-    ) %>%
+      monthly_avg == max(monthly_avg)) %>%
     ungroup() %>%
-    filter(
-      year != 2020 #2020 isnt over :( 
-    ) 
+    filter(year != 2020) #2020 isnt over :( 
   
   outside_monthly = outside %>%
     group_by(year, month) %>%
-    summarise(
-      monthly_avg = mean(analysed_sst)
-    ) %>%
-    filter(
-      !duplicated(month)
-    ) %>%
+    summarise(monthly_avg = mean(analysed_sst)) %>%
+    filter(!duplicated(month)) %>%
     ungroup() %>%
     group_by(year) %>%
-    filter(
-      monthly_avg == max(monthly_avg)
-    )   %>%
-    ungroup() %>%
-    filter(
-      year != 2020
-    )
-  
+    filter(monthly_avg == max(monthly_avg)) %>% ungroup() %>% 
+    filter(year != 2020)
   
   inside_max_mean_summer_monthly <<- mean(inside_monthly$monthly_avg)
   outside_max_mean_summer_monthly <<- mean(outside_monthly$monthly_avg)
@@ -181,30 +164,20 @@ plots <- function(){
   #how many days above mean monthly max as a whole area
   #degree days average
   #####
-  inside_day = inside %>% group_by(
-    date
-  ) %>%
+  inside_day = inside %>% group_by(date) %>%
     mutate(
       bleached = mean(analysed_sst) >(inside_max_mean_summer_monthly + bleaching_threshold_C), 
       mean_sst = mean(analysed_sst)
-    ) %>%
-    filter(
-      !duplicated(date)
-    )
+    ) %>% filter(!duplicated(date))
   #inside_day = inside_day[-c(1)]
   #inside_day = inside_day[-c(3)]
   
   
-  outside_day = outside %>% group_by(
-    date
-  ) %>%
+  outside_day = outside %>% group_by(date) %>%
     mutate(
       bleached = mean(analysed_sst) > (outside_max_mean_summer_monthly +bleaching_threshold_C), 
       mean_sst = mean(analysed_sst)
-    ) %>%
-    filter(
-      !duplicated(date)
-    ) 
+    ) %>%filter(!duplicated(date)) 
   #outside_day = outside_day[-c(1)]
   #outside_day = outside_day[-c(3)]
   
@@ -221,27 +194,19 @@ plots <- function(){
     group_by(date) %>%
     mutate(
       degreeabove = mean_sst - inside_max_mean_summer_monthly
-    ) %>%
-    ungroup() %>%
+    ) %>% ungroup() %>%
     mutate(
       consec = cumsum(!c(TRUE, diff(date) == 1)),
       dummy = T
-    ) %>%
-    group_by(consec) %>%
+    ) %>% group_by(consec) %>%
     mutate(
       degree_days = sum(degreeabove),
-      run_length = sum(dummy)
-    ) %>%
-    filter(
-      !duplicated(consec)
-    )
-  
+      run_length = sum(dummy)) %>%
+    filter(!duplicated(consec))
   
   degree_days_inside <<- sum(inside_day$degree_days)
   avg_run_inside <<-mean(inside_day$run_length)
   avg_degree_days_inside <<- mean(inside_day$degree_days)
-  
-  
   
   inside_day = inside_day%>% group_by(year) %>%
     mutate(
@@ -250,17 +215,14 @@ plots <- function(){
       avg_run_degree_days = mean(degree_days),
       dummy = run_length >1, 
       n_runs_over_1 = sum(dummy)
-    ) %>% ungroup() %>%
-    group_by(year, month) %>%
+    ) %>% ungroup() %>% group_by(year, month) %>%
     mutate(
       degreedays_month = sum(degree_days),
       run_length_month = mean(run_length),
       avg_run_degree_days_m = mean(degree_days),
       dummy = run_length >1, 
-      n_runs_over_1_m = sum(dummy)
-    ) 
+      n_runs_over_1_m = sum(dummy)) 
   
-
   n_multi_day_runs_inside<<- sum(inside_day$dummy)
   
   inside_day = inside_day[c("date","year", "month", "degreedays_year","run_length_year", "avg_run_degree_days", "n_runs_over_1" , 
@@ -268,40 +230,27 @@ plots <- function(){
   
   inside_yearly <<- inside_day %>%
     group_by(year, month) %>%
-    filter(
-      !duplicated(month)
-    )
+    filter(!duplicated(month))
   
-
   outside_day = outside_day %>%
     filter(
       mean_sst > (outside_max_mean_summer_monthly + degree_day_threshold)
-    ) %>%
-    group_by(date) %>%
+    ) %>% group_by(date) %>%
     mutate(
       degreeabove = mean_sst - outside_max_mean_summer_monthly
-    ) %>%
-    ungroup() %>%
+    ) %>% ungroup() %>%
     mutate(
       consec = cumsum(!c(TRUE, diff(date) == 1)),
       dummy = T
-    ) %>%
-    group_by(consec) %>%
+    ) %>% group_by(consec) %>%
     mutate(
       degree_days = sum(degreeabove),
-      run_length = sum(dummy)
-    ) %>%
-    filter(
-      !duplicated(consec)
-    )
-  
+      run_length = sum(dummy)) %>%
+    filter(!duplicated(consec))
   
   degree_days_outside <<- sum(outside_day$degree_days)
   avg_run_outside <<-mean(outside_day$run_length)
   avg_degree_days_outside <<- mean(outside_day$degree_days)
-
-  
-  
   
   outside_day = outside_day%>% group_by(year) %>%
     mutate(
@@ -309,28 +258,22 @@ plots <- function(){
       run_length_year = mean(run_length),
       avg_run_degree_days = mean(degree_days),
       dummy = run_length >1, 
-      n_runs_over_1 = sum(dummy)
-    ) %>% ungroup() %>%
-    group_by(year, month) %>%
+      n_runs_over_1 = sum(dummy)) %>% ungroup() %>% group_by(year, month) %>%
     mutate(
       degreedays_month = sum(degree_days),
       run_length_month = mean(run_length),
       avg_run_degree_days_m = mean(degree_days),
       dummy = run_length >1, 
-      n_runs_over_1_m = sum(dummy)
-    ) 
-  
+      n_runs_over_1_m = sum(dummy)) 
   
   n_multi_day_runs_outside<<- sum(outside_day$dummy)
   
   outside_day = outside_day[c("date","year", "month", "degreedays_year","run_length_year", "avg_run_degree_days", "n_runs_over_1" , 
-                            "degreedays_month", "run_length_month", "avg_run_degree_days_m","n_runs_over_1_m","location")]
+                              "degreedays_month", "run_length_month", "avg_run_degree_days_m","n_runs_over_1_m","location")]
   
   outside_yearly <<- outside_day %>%
     group_by(year, month) %>%
-    filter(
-      !duplicated(month)
-    )
+    filter(!duplicated(month))
   
   rm(inside_day)
   rm(outside_day)
@@ -348,11 +291,50 @@ plots <- function(){
   ######
   #points bleached and percentage of total area
   inside = inside %>%
+    group_by(latitude, longitude, year, month) %>%
+    mutate(mean_monthly_max = mean(analysed_sst)) %>%
+    ungroup() %>% group_by(latitude, longitude,year) %>%
+    mutate(mean_monthly_max = max(mean_monthly_max))   %>%
+    ungroup() %>% group_by(latitude, longitude) %>%
+    mutate(mean_monthly_max = mean(mean_monthly_max))
+  
+  outside = outside %>%
+    group_by(latitude, longitude, year, month) %>%
+    mutate(mean_monthly_max = mean(analysed_sst)) %>%
+    ungroup() %>% group_by(latitude, longitude,year) %>%
+    mutate(mean_monthly_max = max(mean_monthly_max))   %>%
+    ungroup() %>% group_by(latitude, longitude) %>%
+    mutate(mean_monthly_max = mean(mean_monthly_max))
+  
+  outside_mmm <- outside %>%
+    ggplot(aes(longitude, latitude)) +
+    geom_raster(aes(fill = mean_monthly_max)) +
+    #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
+    ggtitle(paste(atoll, "Mean Monthly Max Outside")) +
+    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
+    ylab("Latitude") + xlab("Longitude") +
+    labs(fill = "Mean Monthly Max") +
+    theme(legend.title = element_text(color = "red", hjust = 0.5))
+  ggsave(file = paste0(path_to_plots, "/mmm_outside.png"), outside_mmm)
+  
+  inside_mmm <- inside %>%
+    ggplot(aes(longitude, latitude)) +
+    geom_raster(aes(fill = mean_monthly_max)) +
+    #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
+    ggtitle(paste(atoll, "Mean Monthly Max Inside")) +
+    theme(plot.title = element_text(color = "red", hjust = 0.5)) +
+    ylab("Latitude") + xlab("Longitude") +
+    labs(fill = "Mean Monthly Max") +
+    theme(legend.title = element_text(color = "red", hjust = 0.5))
+  ggsave(file = paste0(path_to_plots, "/mmm_inside.png"), inside_mmm)
+  
+    
+  inside = inside %>%
     mutate(
-      point_bleach = analysed_sst> (inside_max_mean_summer_monthly + bleaching_threshold_C)
+      point_bleach = analysed_sst> (mean_monthly_max + bleaching_threshold_C)
     )
   
- 
+  
   n_points = inside %>%
     group_by(date) %>%
     tally()
@@ -361,16 +343,13 @@ plots <- function(){
   
   inside = inside %>%
     group_by(year, month, date) %>%
-    mutate(
-      percent_bleach = sum(point_bleach)/n_points
-    )
+    mutate(percent_bleach = sum(point_bleach)/n_points)
   
   rm(n_points)
   
   outside = outside %>%
     mutate(
-      point_bleach = analysed_sst> outside_max_mean_summer_monthly +bleaching_threshold_C
-    )
+      point_bleach = analysed_sst> (mean_monthly_max +bleaching_threshold_C))
   
   n_points = outside %>%
     group_by(year, month, date) %>%
@@ -379,18 +358,12 @@ plots <- function(){
   
   outside = outside %>%
     group_by(year, month, date) %>%
-    mutate(
-      percent_bleach = sum(point_bleach)/n_points
-    )
+    mutate(percent_bleach = sum(point_bleach)/n_points)
   
   inside_day = inside %>%
-    filter(
-      !duplicated(date)
-    )
+    filter(!duplicated(date))
   outside_day = outside %>%
-    filter(
-      !duplicated(date)
-    )
+    filter(!duplicated(date))
   
   rm(inside_day)
   rm(outside_day)
@@ -399,23 +372,15 @@ plots <- function(){
   #_________________________________________________________
   #degree days
   inside_degreeday <<- inside %>% 
-    mutate(
-      degreeabove = analysed_sst - inside_max_mean_summer_monthly
-    ) %>%
-    filter(
-      degreeabove > degree_day_threshold
-    )
-  
+    mutate(degreeabove = analysed_sst - mean_monthly_max) %>%
+    filter(degreeabove > degree_day_threshold)
   
   inside_degreeday = inside_degreeday %>%  group_by(latitude, longitude) %>%
     mutate(
       consec = cumsum(!c(TRUE, diff(date) == 1)),
       dummy = T
     ) %>%
-    ungroup() %>%
-    group_by(
-      latitude, longitude, consec
-    ) %>%
+    ungroup() %>%group_by(latitude, longitude, consec) %>%
     mutate(
       degree_days = sum(degreeabove),
       run_length = sum(dummy),
@@ -427,32 +392,21 @@ plots <- function(){
     group_by(latitude, longitude, year) %>%
     mutate(
       degree_days_year = sum(degree_days),
-      run_length_year = mean(run_length)
-    )
+      run_length_year = mean(run_length))
   
+  inside_degreeday  = inside_degreeday %>%
+    group_by(latitude, longitude, year) %>%
+    mutate(n_multiday_runs = sum(dummy))
   
-
-    inside_degreeday  = inside_degreeday %>%
-      group_by(latitude, longitude, year) %>%
-      mutate(n_multiday_runs = sum(dummy))
-    
-    inside_degreeday =   inside_degreeday%>%
+  inside_degreeday =  inside_degreeday%>%
     group_by(latitude, longitude) %>%
-    filter(
-      !duplicated(year)
-    )
-  
-  
+    filter(!duplicated(year) )
+
   inside_degreeday = inside_degreeday[c("latitude","longitude","year","degree_days_year", "run_length_year", "n_multiday_runs")]
   
   outside_degreeday <<- outside %>% 
-    mutate(
-      degreeabove = analysed_sst - outside_max_mean_summer_monthly
-    ) %>%
-    filter(
-      degreeabove > degree_day_threshold
-    )
-  
+    mutate(degreeabove = analysed_sst - mean_monthly_max) %>%
+    filter(degreeabove > degree_day_threshold)
   
   outside_degreeday = outside_degreeday %>%  group_by(latitude, longitude) %>%
     mutate(
@@ -474,20 +428,15 @@ plots <- function(){
     group_by(latitude, longitude, year) %>%
     mutate(
       degree_days_year = sum(degree_days),
-      run_length_year = mean(run_length)
-    )
-  
-  
+      run_length_year = mean(run_length))
   
   outside_degreeday  = outside_degreeday %>%
     group_by(latitude, longitude, year) %>%
     mutate(n_multiday_runs = sum(dummy))
   
-  outside_degreeday =   outside_degreeday%>%
+  outside_degreeday = outside_degreeday%>%
     group_by(latitude, longitude) %>%
-    filter(
-      !duplicated(year)
-    )
+    filter(!duplicated(year))
   
   
   outside_degreeday = outside_degreeday[c("latitude","longitude","year","degree_days_year", "run_length_year", "n_multiday_runs")]
@@ -549,7 +498,7 @@ plots <- function(){
   #dev.off()
   
   ggsave(file = paste0(path_to_plots, "/bleach_outside.png"), bleach_outside_graph)
-
+  
   # tiff(filename=paste0(path_to_plots, "/bleachInside.tiff"),
   #      res=100, width=6, height=4, units="in", compression="lzw")
   bleach_inside_graph <- inside %>%
@@ -564,7 +513,7 @@ plots <- function(){
     labs(fill = "Percent Days \nBleached") +
     theme(legend.title = element_text(color = "red", hjust = 0.5))
   #dev.off()
-
+  
   ggsave(file = paste0(path_to_plots, "/bleach_inside.png"), bleach_inside_graph)
   
   #####
@@ -632,65 +581,79 @@ plots <- function(){
   
   
   yearly_total <<- rbind(inside_yearly, outside_yearly)
-  yearly_total %>%
+  yearly_degree_days = yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= degreedays_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= degreedays_year, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Yearly degree days")) 
+    ggtitle(paste(atoll, "Yearly degree days")) + ylab("Total Degree Days")+ 
+    theme(plot.title = element_text(color = "red", hjust = 0.5))  
+  ggsave(file = paste0(path_to_plots, "/yearly_degree_days.png"), yearly_degree_days)
   
-  yearly_total %>%
+  yearly_run_l = yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= run_length_year, group = location, color = location)) +
     geom_smooth(aes(x=year, y= run_length_year, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Yearly Mean Run Length"))
+    ggtitle(paste(atoll, "Yearly Mean Run Length")) + ylab("Mean Run Length") + 
+    theme(plot.title = element_text(color = "red", hjust = 0.5)) 
+  ggsave(file = paste0(path_to_plots, "/yearly_run_length.png"), yearly_run_l)
   
-  yearly_total %>%
+  yearly_runs = yearly_total %>%
     ggplot() +
     geom_point(aes(x=year, y= n_runs_over_1, group = location, color = location)) +
     geom_smooth(aes(x=year, y= n_runs_over_1, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Yearly #of Runs"))
- 
-  yearly_total %>%
+    ggtitle(paste(atoll, "Yearly #of Runs")) + ylab("# of Multi Day Runs")+ 
+    theme(plot.title = element_text(color = "red", hjust = 0.5)) 
+  ggsave(file = paste0(path_to_plots, "/yearly_runs.png"),  yearly_runs)
+  
+  monthly_degree_days = yearly_total %>%
     ggplot() +
     geom_point(aes(x=date, y= degreedays_month, group = location, color = location)) +
     geom_smooth(aes(x=date, y= degreedays_month, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Monthly Degreedays"))
+    ggtitle(paste(atoll, "Monthly Degreedays")) + ylab("Total Monthly Degree Days")+ 
+    theme(plot.title = element_text(color = "red", hjust = 0.5)) 
+  ggsave(file = paste0(path_to_plots, "/monthly_degreeday.png"), monthly_degree_days)
   
-  yearly_total %>%
+  monthly_mean_run_l = yearly_total %>%
     ggplot() +
     geom_point(aes(x=date, y= run_length_month, group = location, color = location)) +
     geom_smooth(aes(x=date, y= run_length_month, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Monthly Mean Run Length"))
+    ggtitle(paste(atoll, "Monthly Mean Run Length")) + ylab("Mean Run Length")+ 
+    theme(plot.title = element_text(color = "red", hjust = 0.5)) 
+  ggsave(file = paste0(path_to_plots, "/monthly_run_length.png"), monthly_mean_run_l)
   
-  yearly_total %>%
+  monthly_runs = yearly_total %>%
     filter(year>2015) %>%
     ggplot() +
     geom_point(aes(x=date, y= n_runs_over_1_m, group = location, color = location)) +
     geom_smooth(aes(x=date, y= n_runs_over_1_m, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Monthly #of Runs After 2015"))
+    ylab("# of Multi Day Runs")+
+    ggtitle(paste(atoll, "Monthly #of Runs After 2015"))+ 
+    theme(plot.title = element_text(color = "red", hjust = 0.5)) 
+  ggsave(file = paste0(path_to_plots, "/monthly_runs.png"), monthly_runs)
   ########
   
   
   ellipse_area_function <<- ellipse_area(major1, major2, minor1, minor2)
   ellipse_area_points <<- 1.2321 * n_points
   
-  overall_values <<- data.frame( Variable = c("Percent Days Bleached Inside", "Percent Days Bleached Outside", 
-                                       "Degree Days Inside", "Degree Days Outside",
-                                       "Max Mean Summer Monthly Inside", "Max Mean Summer Monthly Outside", "Average Run Length Inside",
-                                       "Average Run Length Outside", "Average Degree Days/ Run Inside", "Average Degree Days/ Run Outside",
-                                       "Multi Day Runs Inside", "Multi Day Runs Outside",
-                                             "Ellipse Area (Functional)", "Ellipse Area (Points)"), 
-                                 Value = c(percent_days_bleach_inside, percent_days_bleach_outside,
-                                       degree_days_inside, degree_days_outside,
-                                       inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, avg_run_inside, avg_run_outside,
-                                       avg_degree_days_inside, avg_degree_days_outside, n_multi_day_runs_inside, n_multi_day_runs_outside,
-                                          ellipse_area_function, ellipse_area_points))
- 
   
-   write.csv(overall_values, paste0(path_to_data, "/", atoll, "Overall_Values.csv"))
+  overall_values <<- data.frame( Variable = c("Percent Days Bleached Inside", "Percent Days Bleached Outside", 
+                                              "Degree Days Inside", "Degree Days Outside",
+                                              "Max Mean Summer Monthly Inside", "Max Mean Summer Monthly Outside", "Average Run Length Inside",
+                                              "Average Run Length Outside", "Average Degree Days/ Run Inside", "Average Degree Days/ Run Outside",
+                                              "Multi Day Runs Inside", "Multi Day Runs Outside",
+                                              "Ellipse Area (Functional)", "Ellipse Area (Points)"), 
+                                 Value = c(percent_days_bleach_inside, percent_days_bleach_outside,
+                                           degree_days_inside, degree_days_outside,
+                                           inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, avg_run_inside, avg_run_outside,
+                                           avg_degree_days_inside, avg_degree_days_outside, n_multi_day_runs_inside, n_multi_day_runs_outside,
+                                           ellipse_area_function, ellipse_area_points))
+  
+  
+  write.csv(overall_values, paste0(path_to_data, "/", atoll, "Overall_Values.csv"))
   cat(green("PLOTS SUCCESSFULLY DOWNLOADED"))
 }
-  
+
 ellipse_area <- function(major1, major2, minor1, minor2){
   major_dist <- 0.5*sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
   minor_dist <- 0.5*sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
@@ -708,35 +671,35 @@ big_ol_run <- function() {
 ##INPUT THIS INFORMATION THEN RUN SCRIPTS; Remember to change out the info for each atoll, but this is all you need to change
 server <- "https://coastwatch.pfeg.noaa.gov/erddap/griddap/"
 sst_id <- "jplMURSST41.csv?analysed_sst"
-lat <- list (min = -15.3, max = -14.95)
-long_in <- list(min = -147.9, max = -147.3)
-start_date <- as.Date("2002-06-22T09:00:00Z")
-end_date <- as.Date("2020-06-22T09:00:00Z")
-atoll <- "Rangiroa"
-                                         
+lat <- list (min = ..., max = ...)
+long_in <- list(min = ..., max = ...)
+start_date <- as.Date("...T09:00:00Z")
+end_date <- as.Date("...T09:00:00Z")
+atoll <- "Kwajelein"
+
 #degrees above max monthly mean that is counted
 bleaching_threshold_C = 0.5
 degree_day_threshold = 0
 
-major1 <- c(-14.997, -147.869)
-major2 <- c(-15.257, -147.383)
-minor1 <- c(-15.208, -147.669)
-minor2 <- c(-15.065, -147.550)
+major1 <- c(..., ...)
+major2 <- c(..., ...)
+minor1 <- c(..., ...)
+minor2 <- c(..., ...)
 
-shift <- c(0, .7)
+shift <- c(0, ...)
 
 big_ol_run <- function() {
   start <- Sys.time()
   create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, atoll)
-  print("fixing and combining frames\n")
+  print("fixing and combining frames")
   fix_combine_data_frames()
-  print("data cleaned and merged successfully\n")
-  print("beginning plotting\n")
+  print("data cleaned and merged successfully")
+  print("beginning plotting")
   plots()
-  print("plots completed\n")
+  print("plots completed")
   end <- Sys.time()
   print(end - start)
 }
 
 big_ol_run()
-
+rm(ellipses)
