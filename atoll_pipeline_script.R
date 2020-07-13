@@ -38,7 +38,7 @@ create_url_and_files <- function(server, sst_id, start_date, end_date, lat, long
 
 ##"Fixes" data frames (column class types, etc), combines them, and runs the ellipse_generation function
 fix_combine_data_frames <- function() {
-  cat(blue("FIXING AND COMBINING DATA FRAMES"))
+  cat(blue("FIXING AND COMBINING DATA FRAMES") %+% "\n")
   inside <- read.csv(inside_file, stringsAsFactors = FALSE)
   outside <- read.csv(outside_file, stringsAsFactors = FALSE)
   
@@ -105,7 +105,7 @@ fix_combine_data_frames <- function() {
 plots <- function(){
   #average temperature by plot over time
   #######
-  cat(blue("GENERATING PLOTS"))
+  cat(blue("GENERATING PLOTS") %+% "\n")
   
   temp_over_time1 <- ellipses %>%
     group_by(location, year, date) %>%
@@ -651,7 +651,7 @@ plots <- function(){
                                            minor1[1], minor1[2], minor2[1], minor2[2],
                                            center[1], center[2],
                                            shift[2], bleaching_threshold_C, degree_day_threshold,
-                                           days_in_dataset_inside, days_in_dataset_outside
+                                           days_in_dataset_inside, days_in_dataset_outside,
                                            percent_days_bleach_inside, percent_days_bleach_outside,
                                            degree_days_inside, degree_days_outside,
                                            inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, 
@@ -670,13 +670,15 @@ ellipse_area <- function(major1, major2, minor1, minor2){
   area <- 12321*pi*major_dist*minor_dist
   return(area)
 }
-
-##Just runs everything at once
-big_ol_run <- function() {
-  create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, long_out, atoll)
+                                         
+ big_ol_run <- function() {
+  start <- Sys.time()
+  create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, atoll)
   fix_combine_data_frames()
   plots()
-}
+  end <- Sys.time()
+  print(end - start)
+}                                        
 
 ##INPUT THIS INFORMATION THEN RUN SCRIPTS; Remember to change out the info for each atoll, but this is all you need to change
 server <- "https://coastwatch.pfeg.noaa.gov/erddap/griddap/"
@@ -698,15 +700,6 @@ minor1 <- c(..., ...)
 minor2 <- c(..., ...)
 
 shift <- c(0, ...)
-
-big_ol_run <- function() {
-  start <- Sys.time()
-  create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, atoll)
-  fix_combine_data_frames()
-  plots()
-  end <- Sys.time()
-  print(end - start)
-}
 
 big_ol_run()
 rm(ellipses)
