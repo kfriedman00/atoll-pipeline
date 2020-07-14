@@ -488,7 +488,7 @@ plots <- function(){
   #      res=100, width=6, height=4, units="in", compression="lzw")
   bleach_outside_graph <- outside %>%
     group_by(latitude, longitude) %>%
-    summarise(time_bleached  = sum(point_bleach)*100/days_in_dataset) %>%
+    summarise(time_bleached  = sum(point_bleach)*100/days_in_dataset_outside) %>%
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = time_bleached)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
@@ -502,7 +502,7 @@ plots <- function(){
   #      res=100, width=6, height=4, units="in", compression="lzw")
   bleach_inside_graph <- inside %>%
     group_by(latitude, longitude) %>%
-    summarise(time_bleached  = sum(point_bleach)*100/days_in_dataset) %>%
+    summarise(time_bleached  = sum(point_bleach)*100/days_in_dataset_inside) %>%
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = time_bleached)) +
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
@@ -634,6 +634,9 @@ plots <- function(){
   ellipse_area_function <<- ellipse_area(major1, major2, minor1, minor2)
   ellipse_area_points <<- 1.2321 * n_points
   
+  midpt1 <- c((major1[1] + major2[1]) / 2, (major1[2] + major2[2]) / 2)
+  midpt2 <- c((minor1[1] + minor2[1]) / 2, (minor1[2] + minor2[2]) / 2)
+  center <<- (midpt1 + midpt2) / 2
   
   overall_values <<- data.frame( Variable = c("Atoll Name", "Major 1, Lat", "Major 1, Long", "Major 2, Lat", "Major 2, Long",
                                               "Minor 1, Lat", "Minor 1, Long", "Minor 2, Lat", "Minor 2, Long",
@@ -688,7 +691,7 @@ long_in <- list(min = ..., max = ...)
 start_date <- as.Date("...T09:00:00Z")
 #using the current year is not recomended                                         
 end_date <- as.Date("...T09:00:00Z")
-atoll <- "Kwajelein"
+atoll <- "..."
 
 #degrees above max monthly mean that is counted
 bleaching_threshold_C = 0.5
