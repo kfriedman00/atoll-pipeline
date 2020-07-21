@@ -7,11 +7,16 @@ library(gganimate)
 library(ggplot2)
 library(ggpubr)
 library(crayon)
-source("...")
+library(ggpubr)
+library(broom)
+source("/Users/sriramsundararajan/Desktop/BSURP/test_elipse.R")
 
 ##You need to change the directory above and the path directories in the first function, that's it
-path_to_wd <<- "..."
+
+path_to_wd <<- "/Users/sriramsundararajan/Desktop/BSURP/atolls/" #PUT WORKING DIRECTORY TO YOUR ATOLLS FOLDER HERE"
 setwd(path_to_wd)
+print(path_to_wd)
+
 
 
 ##Creates path names, directories, urls, file names, and downloads unprocessed data files (if they don't exist)
@@ -24,8 +29,30 @@ create_url_and_files <- function(server, sst_id, start_date, end_date, lat, long
   if (!dir.exists(path_to_data) ) {dir.create(path_to_data)}
   cat(green("DIRECTORIES SUCCESSFULLY CREATED") %+% "\n")
   
+  if(!file.exists(paste0(path_to_wd, "/Overall_values.csv"))){
+    overall_values <- data.frame(Variables = c("Major 1, Lat", "Major 1, Long", "Major 2, Lat", "Major 2, Long",
+                                               "Minor 1, Lat", "Minor 1, Long", "Minor 2, Lat", "Minor 2, Long",
+                                               "Center, Lat", "Center, Long",
+                                               "Longitude Shift", "Bleaching Threshold (Celsius)", "Degree Day Threshold",
+                                               "#of Days Inside", "#of Days Outside",
+                                               "%Days Bleached Inside", "%Days Bleached Outside","%Days>29.5 Inside", "%Days>29.5 Outside", "%Days>30 Inside",
+                                               "%Days>30 Outside","%Days>30.5 Inside", "%Days>30.5 Outside", "%Days>31 Inside",
+                                               "%Days>31 Outside",
+                                               "%days bleach inside using outside MMM",
+                                               "Degree Days Inside", "Degree Days Outside","Degree Days Inside using outside MMM",
+                                               "Max Mean Summer Monthly Inside (Celsius)", "Max Mean Summer Monthly Outside (Celsius)", 
+                                               "Average Run Length Inside (Days)","Average Run Length Outside (Days)", 
+                                               "Average Run Length Inside using outside MMM (Days)",
+                                               "Average Degree Days/ Run Inside", "Average Degree Days/ Run Outside",
+                                               "Average Degree Days/ Run Inside using outside MMM",
+                                               "Multi Day Runs Inside", "Multi Day Runs Outside","Multi Day Runs Inside using outside MMM",
+                                               "Ellipse Area (Functional, sq.km)", "Ellipse Area (Points, sq.km)"))
+    write_csv(overall_values, paste0(path_to_wd, "/Overall_values.csv"))
+  }
+  overall_values <<- read.csv(paste0(path_to_wd, "/Overall_values.csv"))
+  
   inside_url <<- paste0(server, sst_id, "[", "(", start_date, ")", ":1:", "(", end_date, ")", "]", "[", "(", lat$min, ")", ":1:", "(", lat$max, ")", "]", "[", "(", long_in$min, ")", ":1:", "(", long_in$max, ")","]" )
-  outside_url <<- paste0(server, sst_id, "[", "(", start_date, ")", ":1:", "(", end_date, ")", "]", "[", "(", lat$min, ")", ":1:", "(", lat$max, ")", "]", "[", "(", long_in$min+shift[2], ")", ":1:", "(", long_in$max+shift[2], ")","]" )
+  outside_url <<- paste0(server, sst_id, "[", "(", start_date, ")", ":1:", "(", end_date, ")", "]", "[", "(", lat$min+shift[1], ")", ":1:", "(", lat$max+shift[1], ")", "]", "[", "(", long_in$min+shift[2], ")", ":1:", "(", long_in$max+shift[2], ")","]" )
   inside_file <<- paste0(atoll, "/Data/", atoll, "_inside_sst.csv")
   outside_file <<- paste0(atoll, "/Data/", atoll, "_outside_sst.csv")
   
@@ -60,7 +87,6 @@ fix_combine_data_frames <- function() {
   cat(blue("CREATING ELLIPTICAL MASKS NOW") %+% "\n")
   inside_ellipse <- ellipse_generation(inside, major1, major2, minor1, minor2)
   outside_ellipse <- ellipse_generation(outside, major1+shift, major2+shift, minor1+shift, minor2+shift)
-  
   print(length(inside_ellipse[,1]))
   print(length(outside_ellipse[,1]))
   #####inside_ellipse$time = as.character(inside_ellipse$time)
@@ -167,16 +193,16 @@ plots <- function(){
   #how many days above mean monthly max as a whole area
   #degree days average
   #####
-  inside_day = inside %>% group_by(date) %>%
+  inside_day <<- inside %>% group_by(date) %>%
     mutate(
       bleached = mean(analysed_sst) >(inside_max_mean_summer_monthly + bleaching_threshold_C), 
       mean_sst = mean(analysed_sst)
     ) %>% filter(!duplicated(date))
   #inside_day = inside_day[-c(1)]
   #inside_day = inside_day[-c(3)]
+  inside_day
   
-  
-  outside_day = outside %>% group_by(date) %>%
+  outside_day <<- outside %>% group_by(date) %>%
     mutate(
       bleached = mean(analysed_sst) > (outside_max_mean_summer_monthly +bleaching_threshold_C), 
       mean_sst = mean(analysed_sst)
@@ -184,20 +210,38 @@ plots <- function(){
   #outside_day = outside_day[-c(1)]
   #outside_day = outside_day[-c(3)]
   
+  inside_day_outsideMMM <<- inside %>% group_by(date) %>%
+    mutate(
+      bleached = mean(analysed_sst) >(outside_max_mean_summer_monthly + bleaching_threshold_C), 
+      mean_sst = mean(analysed_sst)
+    ) %>% filter(!duplicated(date))
+  #inside_day = inside_day[-c(1)]
+  #inside_day = inside_day[-c(3)]
+  
+  pct_dys_ovr_29_5in <<- (nrow(inside_day[inside_day$analysed_sst>29.5,])*100)/nrow(inside_day)
+  pct_dys_ovr_29_5out <<- (nrow(outside_day[outside_day$analysed_sst>29.5,])*100)/nrow(outside_day)
+  pct_dys_ovr_30in <<- (nrow(inside_day[inside_day$analysed_sst>30,])*100)/nrow(inside_day)
+  pct_dys_ovr_30out <<- (nrow(outside_day[outside_day$analysed_sst>30,])*100)/nrow(outside_day)
+  pct_dys_ovr_30_5in <<- (nrow(inside_day[inside_day$analysed_sst>30.5,])*100)/nrow(inside_day)
+  pct_dys_ovr_30_5out <<- (nrow(outside_day[outside_day$analysed_sst>30.5,])*100)/nrow(outside_day)
+  pct_dys_ovr_31in <<- (nrow(inside_day[inside_day$analysed_sst>31,])*100)/nrow(inside_day)
+  pct_dys_ovr_31out <<- (nrow(outside_day[outside_day$analysed_sst>31,])*100)/nrow(outside_day)
   percent_days_bleach_inside <<- (sum(inside_day$bleached)*100)/nrow(inside_day)
   percent_days_bleach_outside <<- (sum(outside_day$bleached)*100)/nrow(outside_day)
+  percent_days_bleach_inside_outsideMMM <<- (sum(inside_day_outsideMMM$bleached)*100)/nrow(inside_day)
   
   days_in_dataset_outside <<- nrow(outside_day)
   days_in_dataset_inside <<- nrow(inside_day)
   
   #_______________________________________________________________________
+  #Inside bleaching compared to inside MMM
   inside_day = inside_day %>%
     filter(
-      mean_sst > (inside_max_mean_summer_monthly + degree_day_threshold)
+      mean_sst > (inside_max_mean_summer_monthly + degree_day_threshold) #THIS MAKES INSIDE_DAY based on outside MMM
     ) %>%
     group_by(date) %>%
     mutate(
-      degreeabove = mean_sst - inside_max_mean_summer_monthly
+      degreeabove = mean_sst - outside_max_mean_summer_monthly
     ) %>% ungroup() %>%
     mutate(
       consec = cumsum(!c(TRUE, diff(date) == 1)),
@@ -235,6 +279,54 @@ plots <- function(){
   inside_yearly <<- inside_day %>%
     group_by(year, month) %>%
     filter(!duplicated(month))
+  
+  #THIS MAKES INSIDE_DAY based on outside MMM
+  inside_day_outsideMMM  = inside_day_outsideMMM  %>%
+    filter(
+      mean_sst > (outside_max_mean_summer_monthly + degree_day_threshold) #
+    ) %>%
+    group_by(date) %>%
+    mutate(
+      degreeabove = mean_sst - outside_max_mean_summer_monthly
+    ) %>% ungroup() %>%
+    mutate(
+      consec = cumsum(!c(TRUE, diff(date) == 1)),
+      dummy = T
+    ) %>% group_by(consec) %>%
+    mutate(
+      degree_days = sum(degreeabove),
+      run_length = sum(dummy)) %>%
+    filter(!duplicated(consec))
+  
+  degree_days_inside_outsideMMM <<- sum(inside_day_outsideMMM $degree_days)
+  avg_run_inside_outsideMMM <<-mean(inside_day_outsideMMM $run_length)
+  avg_degree_days_inside_outsideMMM <<- mean(inside_day_outsideMMM $degree_days)
+  
+  inside_day_outsideMMM  = inside_day_outsideMMM %>% group_by(year) %>%
+    mutate(
+      degreedays_year = sum(degree_days),
+      run_length_year = mean(run_length),
+      avg_run_degree_days = mean(degree_days),
+      dummy = run_length >1, 
+      n_runs_over_1 = sum(dummy)
+    ) %>% ungroup() %>% group_by(year, month) %>%
+    mutate(
+      degreedays_month = sum(degree_days),
+      run_length_month = mean(run_length),
+      avg_run_degree_days_m = mean(degree_days),
+      dummy = run_length >1, 
+      n_runs_over_1_m = sum(dummy)) 
+  
+  n_multi_day_runs_inside_outsideMMM<<- sum(inside_day_outsideMMM$dummy)
+  
+  inside_day_outsideMMM  = inside_day_outsideMMM [c("date","year", "month", "degreedays_year","run_length_year", "avg_run_degree_days", "n_runs_over_1" , 
+                                                    "degreedays_month", "run_length_month", "avg_run_degree_days_m","n_runs_over_1_m","location")]
+  
+  inside_yearly_outsideMMM <<- inside_day_outsideMMM  %>%
+    group_by(year, month) %>%
+    filter(!duplicated(month))
+  
+  #outside stats
   
   outside_day = outside_day %>%
     filter(
@@ -275,14 +367,22 @@ plots <- function(){
   outside_day = outside_day[c("date","year", "month", "degreedays_year","run_length_year", "avg_run_degree_days", "n_runs_over_1" , 
                               "degreedays_month", "run_length_month", "avg_run_degree_days_m","n_runs_over_1_m","location")]
   
+  
+  
   outside_yearly <<- outside_day %>%
     group_by(year, month) %>%
     filter(!duplicated(month))
   
+  
+  
+  
+  
+  
   rm(inside_day)
   rm(outside_day)
   
-  #####
+  
+  ##### 
   
   
   
@@ -366,6 +466,7 @@ plots <- function(){
   
   inside_day = inside %>%
     filter(!duplicated(date))
+  
   outside_day = outside %>%
     filter(!duplicated(date))
   
@@ -638,32 +739,26 @@ plots <- function(){
   midpt2 <- c((minor1[1] + minor2[1]) / 2, (minor1[2] + minor2[2]) / 2)
   center <<- (midpt1 + midpt2) / 2
   
-  overall_values <<- data.frame( Variable = c("Atoll Name", "Major 1, Lat", "Major 1, Long", "Major 2, Lat", "Major 2, Long",
-                                              "Minor 1, Lat", "Minor 1, Long", "Minor 2, Lat", "Minor 2, Long",
-                                              "Center, Lat", "Center, Long",
-                                              "Longitude Shift", "Bleaching Threshold (Celsius)", "Degree Day Threshold",
-                                              "Number of Days Inside", "Number of Days Outside",
-                                              "Percent Days Bleached Inside", "Percent Days Bleached Outside", 
-                                              "Degree Days Inside", "Degree Days Outside",
-                                              "Max Mean Summer Monthly Inside (Celsius)", "Max Mean Summer Monthly Outside (Celsius)", 
-                                              "Average Run Length Inside (Days)",
-                                              "Average Run Length Outside (Days)", "Average Degree Days/ Run Inside", "Average Degree Days/ Run Outside",
-                                              "Multi Day Runs Inside", "Multi Day Runs Outside",
-                                              "Ellipse Area (Functional, sq.km)", "Ellipse Area (Points, sq.km)"), 
-                                 Value = c(atoll, major1[1], major1[2], major2[1], major2[2],
-                                           minor1[1], minor1[2], minor2[1], minor2[2],
-                                           center[1], center[2],
-                                           shift[2], bleaching_threshold_C, degree_day_threshold,
-                                           days_in_dataset_inside, days_in_dataset_outside,
-                                           percent_days_bleach_inside, percent_days_bleach_outside,
-                                           degree_days_inside, degree_days_outside,
-                                           inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, 
-                                           avg_run_inside, avg_run_outside,
-                                           avg_degree_days_inside, avg_degree_days_outside, n_multi_day_runs_inside, n_multi_day_runs_outside,
-                                           ellipse_area_function, ellipse_area_points))
+  atoll_name <- as.character(atoll)
+  overall_values[atoll_name] <<- c(major1[1], major1[2], major2[1], major2[2],
+                                   minor1[1], minor1[2], minor2[1], minor2[2],
+                                   center[1], center[2],
+                                   shift[2], bleaching_threshold_C, degree_day_threshold,
+                                   days_in_dataset_inside, days_in_dataset_outside,
+                                   percent_days_bleach_inside, percent_days_bleach_outside,
+                                   pct_dys_ovr_29_5in, pct_dys_ovr_29_5out, pct_dys_ovr_30in, 
+                                   pct_dys_ovr_30out, pct_dys_ovr_30_5in, pct_dys_ovr_30_5out, 
+                                   pct_dys_ovr_31in, pct_dys_ovr_31out,
+                                   percent_days_bleach_inside_outsideMMM,
+                                   degree_days_inside, degree_days_outside,degree_days_inside_outsideMMM,
+                                   inside_max_mean_summer_monthly, outside_max_mean_summer_monthly, 
+                                   avg_run_inside, avg_run_outside,avg_run_inside_outsideMMM, 
+                                   avg_degree_days_inside, avg_degree_days_outside, avg_degree_days_inside_outsideMMM, 
+                                   n_multi_day_runs_inside, n_multi_day_runs_outside,n_multi_day_runs_inside_outsideMMM, 
+                                   ellipse_area_function, ellipse_area_points)
   
   
-  write.csv(overall_values, paste0(path_to_data, "/", atoll, "_Overall_Values.csv"))
+  write_csv(overall_values, paste0(path_to_wd, "/Overall_values.csv"), append=FALSE)
   cat(green("PLOTS SUCCESSFULLY DOWNLOADED"))
 }
 
@@ -673,8 +768,8 @@ ellipse_area <- function(major1, major2, minor1, minor2){
   area <- 12321*pi*major_dist*minor_dist
   return(area)
 }
-                                         
- big_ol_run <- function() {
+
+big_ol_run <- function() {
   start <- Sys.time()
   create_url_and_files(server, sst_id, start_date, end_date, lat, long_in, atoll)
   fix_combine_data_frames()
@@ -686,23 +781,26 @@ ellipse_area <- function(major1, major2, minor1, minor2){
 ##INPUT THIS INFORMATION THEN RUN SCRIPTS; Remember to change out the info for each atoll, but this is all you need to change
 server <- "https://coastwatch.pfeg.noaa.gov/erddap/griddap/"
 sst_id <- "jplMURSST41.csv?analysed_sst"
-lat <- list (min = ..., max = ...)
-long_in <- list(min = ..., max = ...)
-start_date <- as.Date("...T09:00:00Z")
-#using the current year is not recomended                                         
-end_date <- as.Date("...T09:00:00Z")
-atoll <- "..."
+lat <- list (min = 11.4, max = 11.7)
+long_in <- list(min = 162.1, max = 162.4)
+start_date <- as.Date("2003-01-01T09:00:00Z")
+end_date <- as.Date("2019-12-31T09:00:00Z")
+atoll <- "Enewetak"
 
 #degrees above max monthly mean that is counted
 bleaching_threshold_C = 0.5
 degree_day_threshold = 0
 
-major1 <- c(..., ...)
-major2 <- c(..., ...)
-minor1 <- c(..., ...)
-minor2 <- c(..., ...)
+major1 <- c(11.626,162.128)
+major2 <- c(11.349,162.328)
+minor1 <- c(11.422,162.126)
+minor2 <- c(11.556, 162.333)
 
-shift <- c(0, ...)
+shift<-c(0,0.4)
+
+
+
+
 
 big_ol_run()
 rm(ellipses)
