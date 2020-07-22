@@ -241,7 +241,7 @@ plots <- function(){
     ) %>%
     group_by(date) %>%
     mutate(
-      degreeabove = mean_sst - outside_max_mean_summer_monthly
+      degreeabove = mean_sst - inside_max_mean_summer_monthly
     ) %>% ungroup() %>%
     mutate(
       consec = cumsum(!c(TRUE, diff(date) == 1)),
