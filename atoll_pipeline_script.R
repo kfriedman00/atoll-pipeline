@@ -218,14 +218,14 @@ plots <- function(){
   #inside_day = inside_day[-c(1)]
   #inside_day = inside_day[-c(3)]
   
-  pct_dys_ovr_29_5in <<- (nrow(inside_day[inside_day$analysed_sst>29.5,])*100)/nrow(inside_day)
-  pct_dys_ovr_29_5out <<- (nrow(outside_day[outside_day$analysed_sst>29.5,])*100)/nrow(outside_day)
-  pct_dys_ovr_30in <<- (nrow(inside_day[inside_day$analysed_sst>30,])*100)/nrow(inside_day)
-  pct_dys_ovr_30out <<- (nrow(outside_day[outside_day$analysed_sst>30,])*100)/nrow(outside_day)
-  pct_dys_ovr_30_5in <<- (nrow(inside_day[inside_day$analysed_sst>30.5,])*100)/nrow(inside_day)
-  pct_dys_ovr_30_5out <<- (nrow(outside_day[outside_day$analysed_sst>30.5,])*100)/nrow(outside_day)
-  pct_dys_ovr_31in <<- (nrow(inside_day[inside_day$analysed_sst>31,])*100)/nrow(inside_day)
-  pct_dys_ovr_31out <<- (nrow(outside_day[outside_day$analysed_sst>31,])*100)/nrow(outside_day)
+  pct_dys_ovr_29_5in <<- (nrow(inside_day[inside_day$mean_sst>29.5,])*100)/nrow(inside_day)
+  pct_dys_ovr_29_5out <<- (nrow(outside_day[outside_day$mean_sst>29.5,])*100)/nrow(outside_day)
+  pct_dys_ovr_30in <<- (nrow(inside_day[inside_day$mean_sst>30,])*100)/nrow(inside_day)
+  pct_dys_ovr_30out <<- (nrow(outside_day[outside_day$mean_sst>30,])*100)/nrow(outside_day)
+  pct_dys_ovr_30_5in <<- (nrow(inside_day[inside_day$mean_sst>30.5,])*100)/nrow(inside_day)
+  pct_dys_ovr_30_5out <<- (nrow(outside_day[outside_day$mean_sst>30.5,])*100)/nrow(outside_day)
+  pct_dys_ovr_31in <<- (nrow(inside_day[inside_day$mean_sst>31,])*100)/nrow(inside_day)
+  pct_dys_ovr_31out <<- (nrow(outside_day[outside_day$mean_sst>31,])*100)/nrow(outside_day)
   percent_days_bleach_inside <<- (sum(inside_day$bleached)*100)/nrow(inside_day)
   percent_days_bleach_outside <<- (sum(outside_day$bleached)*100)/nrow(outside_day)
   percent_days_bleach_inside_outsideMMM <<- (sum(inside_day_outsideMMM$bleached)*100)/nrow(inside_day)
