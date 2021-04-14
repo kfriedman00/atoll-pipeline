@@ -118,6 +118,7 @@ plots <- function(){
   
   ggsave(file = paste0(path_to_plots, "/TempOverTime1.png"), temp_over_time1)
   
+  #average temperature plot highlighting general trends
   temp_over_time2 <- ellipses %>%
     group_by(location, year, date) %>%
     summarise(Mean = mean(analysed_sst)) %>%
@@ -138,10 +139,12 @@ plots <- function(){
   outside <- filter(ellipses, location == "O")
   #mean of hottest month per year
   #####
+  #makes new monthly avg column, reduces every month to one row, reduces every year to the max 
+  #avg monthly temp, takes out 2020
   inside_monthly = inside %>%
     group_by(year, month) %>%  
-    summarise(monthly_avg = mean(analysed_sst)) %>%
-    filter(!duplicated(month)) %>%
+    summarise(monthly_avg = mean(analysed_sst)) %>% 
+    filter(!duplicated(month)) %>% 
     ungroup() %>%
     group_by(year) %>%
     filter(
@@ -167,6 +170,8 @@ plots <- function(){
   #how many days above mean monthly max as a whole area
   #degree days average
   #####
+  
+  #just averages whole area for each day, adds "bleached" and mean sst columns
   inside_day = inside %>% group_by(date) %>%
     mutate(
       bleached = mean(analysed_sst) >(inside_max_mean_summer_monthly + bleaching_threshold_C), 
@@ -187,10 +192,16 @@ plots <- function(){
   percent_days_bleach_inside <<- (sum(inside_day$bleached)*100)/nrow(inside_day)
   percent_days_bleach_outside <<- (sum(outside_day$bleached)*100)/nrow(outside_day)
   
-  days_in_dataset_outside <<- nrow(outside_day)
+  days_in_dataset_outside <<- nrow(outside_day) 
   days_in_dataset_inside <<- nrow(inside_day)
+  if (days_in_dataset_outside != days_in_dataset_inside)
+  {print("WARNING, DAYS IN DATASET DO NOT MATCH")}
   
   #_______________________________________________________________________
+  
+  #filters only days above mmm + threshold, adds degrees above mmm column, adds a grouping indicator
+  #(i.e. if consecutive rows in the now filtered dataset are one apart date-wise, they will all be given the same
+  #grouping indicator) it then sums all degrees above cells in the group and counts the length of the group
   inside_day = inside_day %>%
     filter(
       mean_sst > (inside_max_mean_summer_monthly + degree_day_threshold)
@@ -212,6 +223,8 @@ plots <- function(){
   avg_run_inside <<-mean(inside_day$run_length)
   avg_degree_days_inside <<- mean(inside_day$degree_days)
   
+  
+  #daily data summarized by year and month
   inside_day = inside_day%>% group_by(year) %>%
     mutate(
       degreedays_year = sum(degree_days),
@@ -294,6 +307,8 @@ plots <- function(){
   #percent bleached over time
   ######
   #points bleached and percentage of total area
+  
+  #groups by point and calculates granular mmm
   inside = inside %>%
     group_by(latitude, longitude, year, month) %>%
     mutate(mean_monthly_max = mean(analysed_sst)) %>%
@@ -310,6 +325,8 @@ plots <- function(){
     ungroup() %>% group_by(latitude, longitude) %>%
     mutate(mean_monthly_max = mean(mean_monthly_max))
   
+  
+  #mmm ratsers
   outside_mmm <- outside %>%
     ggplot(aes(longitude, latitude)) +
     geom_raster(aes(fill = mean_monthly_max)) +
@@ -333,6 +350,7 @@ plots <- function(){
   ggsave(file = paste0(path_to_plots, "/mean_monthly_maximum.png"), combined_mmm_plot)
   
   
+  #adds bleaching columnn per point
   inside = inside %>%
     mutate(
       point_bleach = analysed_sst> (mean_monthly_max + bleaching_threshold_C)
@@ -379,6 +397,7 @@ plots <- function(){
     mutate(degreeabove = analysed_sst - mean_monthly_max) %>%
     filter(degreeabove > degree_day_threshold)
   
+  #degree days calculation per point
   inside_degreeday = inside_degreeday %>%  group_by(latitude, longitude) %>%
     mutate(
       consec = cumsum(!c(TRUE, diff(date) == 1)),
@@ -443,6 +462,7 @@ plots <- function(){
     filter(!duplicated(year))
   
   
+  #labeling
   outside_degreeday = outside_degreeday[c("latitude","longitude","year","degree_days_year", "run_length_year", "n_multiday_runs")]
   # test = outside_degreeday %>% filter(
   #   latitude ==16.77, longitude == -169.3, consec == 81
