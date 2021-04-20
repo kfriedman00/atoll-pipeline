@@ -3,7 +3,6 @@ library(ncdf4)
 library(raster)
 
 setwd("C:/Users/kanoe/Documents/Research Data")
-
 load("Introsems/Shark_project/other data/bath_obj.Rdata")
 
 f <- nc_open("Introsems/Shark_project/other data/ETOPO1_Ice_g_gmt4.grd")
@@ -11,6 +10,7 @@ bath_lon <- ncvar_get(f, "x")
 bath_lat <- ncvar_get(f, "y")
 bath <- ncvar_get(f, "z")
 nc_close(f)
+
 
 half_dist <- function(pts) {
   x <- pts[4] - pts[2]
@@ -21,6 +21,8 @@ half_dist <- function(pts) {
 
 #read in overall values table
 overall_values <- read.csv("BSURP/Atolls/Overall_values.csv", stringsAsFactors = F)
+
+#print for user info / debugging
 rownames(overall_values) <- overall_values[,2]
 overall_values <- t(overall_values[-1,-(1:2)])
 overall_values <- data.frame(overall_values[!is.na(overall_values[,1]),])
@@ -33,12 +35,12 @@ atolls <- rownames(overall_values)
 max_depths <- data.frame(matrix(nrow = length(atolls), ncol = 2))
 colnames(max_depths) <- c("atoll", "max_depth")
 
-narrow <- which(is.infinite(max_depths$max_depth))
-max_depths[narrow,]
+#check populated max depths then include to rerun for smaller atoll margins
+#narrow <- which(is.infinite(max_depths$max_depth))
+#max_depths[narrow,]
 
-deep <- which(max_depths$max_depth < -500)
-max_depths[deep,]
-#1:length(atolls)
+#deep <- which(max_depths$max_depth < -500)
+#max_depths[deep,]
 
 for(i in 1:length(atolls)){
   dat <- as.numeric(overall[i,])
@@ -46,6 +48,7 @@ for(i in 1:length(atolls)){
   lon <- dat[10]
   lat <- dat[9]
   
+  #toggle this when rerunning for very narrow atolls, shrink search until result is valid
   #range <- half_dist(dat[5:8])
   #range <- 2 * min(c(half_dist(dat[1:4]), half_dist(dat[5:8])))
   range <- min(c(half_dist(dat[1:4]), half_dist(dat[5:8])))
