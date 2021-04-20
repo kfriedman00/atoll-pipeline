@@ -1,29 +1,32 @@
-#fixing atolls
+#fixing atolls plots + calculations + running in bulk
 library(varhandle)
 path_to_wd <<- "C:/Users/kanoe/Documents/Research Data/BSURP/Atolls/"
 setwd(path_to_wd)
 
+#need to load in functions from pipeline manually, could automate using kyle's thing
 
 server <- "https://coastwatch.pfeg.noaa.gov/erddap/griddap/"
 sst_id <- "jplMURSST41.csv?analysed_sst"
 start_date <- as.Date("2003-01-01T09:00:00Z")                                       
 end_date <- as.Date("2019-12-31T09:00:00Z")
 
-
+#build a list of all the atolls you want to run
 atoll_list <- read.csv("other data/atolls_sheet.csv", stringsAsFactors = F)
-fix <- atoll_list[which(!is.na(atoll_list$Atoll)),]
-full_run <- atoll_list[which(atoll_list$redo == "do"),]
-replot <- atoll_list[which(atoll_list$redo == "plot"),]
+
+#tag your atolls with which component of the pipeline you'd like to run
+#double check that first column reads in col number
+full_run <- atoll_list[which(atoll_list$redo == "do"),-1]
+replot <- atoll_list[which(atoll_list$redo == "plot"),-1]
+
+#constants
+bleaching_threshold_C = 0.5
+degree_day_threshold = 0
+
+#data format - 1: atoll, 2/3: lat, 4/5: long, majors, minors, shift x/y, 
 
 #rerun plots for selected atolls
 #####
 for(num in 1:length(replot$Atoll)) {
-  current_dat <- replot[num,-1]
-  
-  #degrees above max monthly mean that is counted
-  bleaching_threshold_C = 0.5
-  degree_day_threshold = 0
-  
   lat  <- list(min = as.numeric(current_dat[2]), max = as.numeric(current_dat[3]))
   long <- list(min = as.numeric(current_dat[4]), max = as.numeric(current_dat[5]))
   
@@ -48,7 +51,8 @@ for(num in 1:length(replot$Atoll)) {
   
   ellipses$date <- as.Date(ellipses$date)
   
-  ellipses <- ellipses[ellipses$date != 2002 & ellipses$date != 2020,]
+  #adjust start and end as desired
+  ellipses <- ellipses[ellipses$date >= 2002 & ellipses$date <= 2020,]
   
   create_url_and_files(server, sst_id, start_date, end_date, lat, long, atoll)
   plots()
@@ -88,8 +92,7 @@ for(num in 1:length(full_run$Atoll)) {
 
 
 
-#recalculating table values
-
+#recalculating table values, no plotting
 fix_fn <- function(ellipses) {
   #percent days bleached stats
   inside <- filter(ellipses, location == "I")
@@ -173,6 +176,7 @@ fix_fn <- function(ellipses) {
   write_csv(overall_values, paste0(path_to_wd, "/Overall_values.csv"), append=FALSE)
 }
 
+#recalculate ellipse area
 ellipse_area <- function(major1, major2, minor1, minor2){
   major_dist <- 0.5*sqrt((major2[1] - major1[1])^2 + (major2[2] - major1[2])^2)
   minor_dist <- 0.5*sqrt((minor2[1] - minor1[1])^2 + (minor2[2] - minor1[2])^2)
@@ -180,28 +184,4 @@ ellipse_area <- function(major1, major2, minor1, minor2){
   return(area)
 }
 
-
-server <- "https://coastwatch.pfeg.noaa.gov/erddap/griddap/" 
-sst_id <- "jplMURSST41.csv?analysed_sst"
-lat <- list (min = -16.16, max = -16.02)
-long <- list(min = -179.4, max = -179.15)
-start_date <- as.Date("2003-01-01T09:00:00Z")
-end_date <- as.Date("2019-12-31T09:00:00Z")
-atoll <- "Qelevu"
-
-#degrees above max monthly mean that is counted
-bleaching_threshold_C = 0.5
-degree_day_threshold = 0
-
-major1 <- c(-16.0814, -179.3747)
-major2 <- c(-16.10713, -179.1996)
-minor1 <- c(-16.12626, -179.29505)
-minor2 <- c(-16.05764, -179.28544)
-
-shift<-c(0,0.25)
-
-
-big_ol_run()
-rm(ellipses)
-rm(list = setdiff(ls(), lsf.str()))
 
