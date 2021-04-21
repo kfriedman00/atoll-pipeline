@@ -474,34 +474,7 @@ plots <- function(){
   
   #percent days bleached raster
   #####
-  
-  degree_days_outside_2016 <- outside_degreeday %>% 
-    group_by(latitude, longitude) %>% 
-    filter(year == 2016) %>%
-    filter(!duplicated(year)) %>%
-    ggplot(aes(longitude, latitude)) +
-    geom_raster(aes(fill = degree_days_year)) +
-    #scale_fill_gradientn(colours=viridis::plasma(5)) +
-    ylab("Latitude") + xlab("Longitude") +
-    labs(fill = "Degree Days") +
-    theme(legend.title = element_text(color = "red", hjust = 0.5))
-  
-  degree_days_inside_2016 <- inside_degreeday %>% 
-    group_by(latitude, longitude) %>% 
-    filter(year == 2016) %>%
-    filter(!duplicated(year)) %>%
-    ggplot(aes(longitude, latitude)) +
-    geom_raster(aes(fill = degree_days_year)) +
-    #scale_fill_gradientn(colours=viridis::plasma(5)) +
-    ylab("Latitude") + xlab("Longitude") +
-    labs(fill = "Degree Days") +
-    theme(legend.title = element_text(color = "red", hjust = 0.5))
-  
-  degree_days_plot <- ggarrange(degree_days_inside_2016, degree_days_outside_2016, 
-                                labels=c("Inside", "Outside"), ncol=1, nrow=2)
-  degree_days_plotty <- annotate_figure(degree_days_plot, top = "Degree Days 2016")
-  
-  ggsave(file = paste0(path_to_plots, "/degree_days_2016.png"), degree_days_plotty)
+
   
   
   # tiff(filename=paste0(path_to_plots, "/bleachOutside.tiff"),
@@ -514,7 +487,10 @@ plots <- function(){
     #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(0.09,0.12)) +
     
     ylab("Latitude") + xlab("Longitude") +
-    labs(fill = "Percent Days \nBleached") +
+    labs(fill = "Percent 
+
+
+ays \nBleached") +
     theme(legend.title = element_text(color = "red", hjust = 0.5))
   #dev.off()
   
@@ -545,45 +521,7 @@ plots <- function(){
   #max ssst
   
   ########
-  # tiff(filename=paste0(path_to_plots, "/maxTemp2015Outside.tiff"), 
-  #      res=100, width=6, height=4, units="in", compression="lzw")
-  max_sst_out <- outside %>% 
-    group_by(latitude, longitude) %>%
-    filter(year == 2016) %>%
-    summarise(sst = max(analysed_sst)) %>% 
-    ggplot(aes(longitude, latitude)) +
-    geom_raster(aes(fill = sst)) + 
-    #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(29.9, 30.5)) +
-    #dashed lines
-    # theme(panel.grid.major = element_line(color = 'black', linetype = 'dashed'), panel.ontop = T,
-    #       panel.grid.minor = element_blank(), panel.background = element_rect(fill = NA)) +
-    labs(fill = "Max Sea Surface \nTemperature (Celsius)") +
-    theme(legend.title = element_text(size = 8, colour = "red", hjust = 0.5))+
-    ylab("Latitude") + xlab("Longitude")
-  # dev.off()
-  
-  # tiff(filename=paste0(path_to_plots, "/maxTemp2015Outside.tiff"), 
-  #      res=100, width=6, height=4, units="in", compression="lzw")
-  max_sst_in <- ellipses %>% 
-    group_by(latitude, longitude) %>%
-    filter(location == "I", year == 2016) %>%
-    summarise(sst = max(analysed_sst)) %>% 
-    ggplot(aes(longitude, latitude)) +
-    geom_raster(aes(fill = sst)) + 
-    #scale_fill_gradientn(colours=viridis::plasma(5), limits=c(29.9, 30.5)) +
-    #dashed lines
-    #theme(panel.grid.major = element_line(color = 'black', linetype = 'dashed'), panel.ontop = T,
-    #      panel.grid.minor = element_blank(), panel.background = element_rect(fill = NA)) +
-    labs(fill = "Max Sea Surface \nTemperature (Celsius)") +
-    theme(legend.title = element_text(size = 8, colour = "red", hjust = 0.5))+
-    ylab("Latitude") + xlab("Longitude")
-  # dev.off()
-  
-  max_sst_2016 <- ggarrange(max_sst_in, max_sst_out, labels=c("Inside", "Outside"), ncol=1, nrow=2)
-  max_sst_2016_plot <- annotate_figure(max_sst_2016, 
-                                       top = "Maximum Sea Surface Temperature \n 2016")
-  
-  ggsave(file = paste0(path_to_plots, "/max_sst_2016.png"), max_sst_2016_plot)
+ 
   
   
   heat_histogram_total = ellipses %>%
@@ -615,14 +553,6 @@ plots <- function(){
     ggtitle(paste(atoll, "Yearly Mean Run Length")) + ylab("Mean Run Length") + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) 
   ggsave(file = paste0(path_to_plots, "/yearly_run_length.png"), yearly_run_l)
-  
-  yearly_runs = yearly_total %>%
-    ggplot() +
-    geom_point(aes(x=year, y= n_runs_over_1, group = location, color = location)) +
-    geom_smooth(aes(x=year, y= n_runs_over_1, group = location, color = location), se = F) +
-    ggtitle(paste(atoll, "Yearly Number of Runs")) + ylab("Number of Multiple Day Runs")+ 
-    theme(plot.title = element_text(color = "red", hjust = 0.5)) 
-  ggsave(file = paste0(path_to_plots, "/yearly_runs.png"),  yearly_runs)
   
   monthly_degree_days = yearly_total %>%
     ggplot() +
