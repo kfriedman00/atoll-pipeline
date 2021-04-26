@@ -635,10 +635,6 @@ atoll <- "..."
 bleaching_threshold_C = 0.5
 degree_day_threshold = 0
 
-major1 <- c(..., ...)
-major2 <- c(..., ...)
-minor1 <- c(..., ...)
-minor2 <- c(..., ...)
 
 shift <- c(0, ...)
 
