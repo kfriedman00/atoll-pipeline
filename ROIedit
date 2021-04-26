@@ -630,6 +630,7 @@ start_date <- as.Date("...T09:00:00Z")
 #using the current year is not recomended                                         
 end_date <- as.Date("...T09:00:00Z")
 atoll <- "..."
+ROI_file = "..."
 
 #degrees above max monthly mean that is counted
 bleaching_threshold_C = 0.5
