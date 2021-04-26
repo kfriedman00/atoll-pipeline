@@ -1,25 +1,26 @@
-ROI_generation = function(square, region, shift, ROI_file) {
+ROI_generation = function(square, region, shift, verticies) {
+  
   is_inside = function(pt){
     point.in.polygon(pt[1], pt[2], c(verticies[,2]), c(verticies[,1])) >0
   }
   
-  verticies = read.csv(ROI_file,stringsAsFactors = F )
-  verticies = verticies[,1:2]
   
   if (region == "I") {
     day_dat <- unique(square[,c("latitude", "longitude")])
-    inside_filtered <- apply(day_dat, 1, is_inside)
-    
-    return(inside_filtered)
+    inside_mask <- apply(day_dat, 1, is_inside)
+    inside_data <- square[inside_mask,]
+
+    return(inside_data)
   }
   
   else {
     verticies$X = verticies$X + shift[2]
-    verticies$Y = vertcies$Y + shift[1]
+    verticies$Y = verticies$Y + shift[1]
     day_dat <- unique(square[,c("latitude", "longitude")])
-    outside_filtered <- apply(day_dat, 1, is_inside)
+    outside_mask <- apply(day_dat, 1, is_inside)
+    outside_data <- square[outside_mask,]
     
-    return(outside_filtered)
+    return(outside_data)
   }
   
 }
