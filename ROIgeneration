@@ -14,7 +14,8 @@ ROI_generation = function(square, region, shift, ROI_file) {
   }
   
   else {
-    verticies$X = verticies$X + shift
+    verticies$X = verticies$X + shift[2]
+    verticies$Y = vertcies$Y + shift[1]
     day_dat <- unique(square[,c("latitude", "longitude")])
     outside_filtered <- apply(day_dat, 1, is_inside)
     
