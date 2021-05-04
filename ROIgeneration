@@ -1,7 +1,7 @@
 ROI_generation = function(square, region, shift, verticies) {
   
   is_inside = function(pt){
-    point.in.polygon(pt[1], pt[2], c(verticies[,2]), c(verticies[,1])) >0
+    point.in.polygon(pt[1], pt[2], c(verticies[,2]), c(verticies[,1])) == 1
   }
   
   is_outside = function(pt){
