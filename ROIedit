@@ -7,10 +7,9 @@ library(gganimate)
 library(ggplot2)
 library(ggpubr)
 library(crayon)
-#pathname of ROI mask generation file
-source("...")
+source(".../ROI generation.R")
 
-
+##You need to change the directory above and the path directories in the first function, that's it
 path_to_wd <<- "..."
 setwd(path_to_wd)
 
@@ -33,7 +32,7 @@ create_url_and_files <- function(server, sst_id, start_date, end_date, lat, long
   cat(blue("FILE DOWNLOAD COMMENCING") %+% "\n")
   if(!file.exists(inside_file)) curl::curl_download(inside_url, inside_file, quiet=F)
   cat(green("INSIDE ATOLL DATA SUCCESSFULLY DOWNLOADED") %+% "\n")
-  #if(!file.exists(outside_file)) curl::curl_download(outside_url, outside_file, quiet=F)
+  if(!file.exists(outside_file)) curl::curl_download(outside_url, outside_file, quiet=F)
   cat(green("OUTSIDE ATOLL DATA SUCCESSFULLY DOWNLOADED") %+% "\n")
 }
 
@@ -42,7 +41,8 @@ create_url_and_files <- function(server, sst_id, start_date, end_date, lat, long
 fix_combine_data_frames <- function() {
   cat(blue("FIXING AND COMBINING DATA FRAMES") %+% "\n")
   inside <- read.csv(inside_file, stringsAsFactors = FALSE)
-  outside <- read.csv(inside_file, stringsAsFactors = FALSE)
+  outside <- read.csv(outside_file, stringsAsFactors = FALSE)
+  
   
   inside = inside[-1,]
   inside$latitude <- as.numeric(as.character(inside$latitude))
@@ -63,7 +63,9 @@ fix_combine_data_frames <- function() {
   verticies <<- read.csv(ROI_file, stringsAsFactors = F )
   verticies <<- verticies[,1:2]
   inside_ROI <- ROI_generation(inside, "I", shift, verticies)
-  outside_ROI <- ROI_generation(outside, "O", shift, verticies)
+  verticies$X = verticies$X + shift[2]
+  verticies$Y = verticies$Y + shift[1]
+  outside_ROI <- ROI_generation(outside, "I", shift, verticies)
   
   print(length(inside_ROI[,1]))
   print(length(outside_ROI[,1]))
@@ -221,9 +223,9 @@ plots <- function(){
     mutate(
       run_length = sum(dummy)) %>%
     filter(!duplicated(consec))
-
+  
   avg_run_inside <<-mean(inside_day$run_length)
-
+  
   
   
   #daily data summarized by year and month
@@ -241,7 +243,7 @@ plots <- function(){
   n_multi_day_runs_inside<<- sum(inside_day$dummy)
   
   inside_day = inside_day[c("date","year", "month", "run_length_year",  "n_runs_over_1" , 
-                             "run_length_month", "n_runs_over_1_m","location")]
+                            "run_length_month", "n_runs_over_1_m","location")]
   
   inside_yearly <<- inside_day %>%
     group_by(year, month) %>%
@@ -277,7 +279,7 @@ plots <- function(){
   n_multi_day_runs_outside<<- sum(outside_day$dummy)
   
   outside_day = outside_day[c("date","year", "month", "run_length_year", "n_runs_over_1" , 
-                               "run_length_month", "n_runs_over_1_m","location")]
+                              "run_length_month", "n_runs_over_1_m","location")]
   
   outside_yearly <<- outside_day %>%
     group_by(year, month) %>%
@@ -462,7 +464,7 @@ plots <- function(){
   MMMi = inside_max_mean_summer_monthly
   MMMo = outside_max_mean_summer_monthly
   
-
+  
   DHW_I = ROIs %>% filter(location == "I") %>% group_by(date) %>% 
     mutate(mean_sst = mean(analysed_sst)) %>% filter(!duplicated(date)) %>%
     mutate(degree_above = 0) %>% mutate(DHW = NA)
@@ -493,7 +495,7 @@ plots <- function(){
     DHW_O$DHW[i] = (sum(DHW_O$degree_above[(i-83):i]))/7
   }
   
-
+  
   #inside w outside MMM
   DHW_IO = ROIs %>% filter(location == "I") %>% group_by(date) %>% 
     mutate(mean_sst = mean(analysed_sst)) %>% filter(!duplicated(date)) %>%
@@ -596,7 +598,7 @@ plots <- function(){
     ggtitle(paste(atoll, "Yearly Mean Run Length")) + ylab("Mean Run Length") + 
     theme(plot.title = element_text(color = "red", hjust = 0.5)) 
   ggsave(file = paste0(path_to_plots, "/yearly_run_length.png"), yearly_run_l)
-
+  
   monthly_mean_run_l = yearly_total %>%
     ggplot() +
     geom_point(aes(x=date, y= run_length_month, group = location, color = location)) +
@@ -666,17 +668,16 @@ big_ol_run <- function() {
 server <- "https://coastwatch.pfeg.noaa.gov/erddap/griddap/"
 sst_id <- "jplMURSST41.csv?analysed_sst"
 lat <- list (min = ..., max = ...)
-long_in <- list(min =  ..., max = ...)
-#Date in form YYYY-MM-DD
-start_date <- as.Date("...T09:00:00Z")
-end_date <- as.Date("...T09:00:00Z")
+long_in <- list(min = ..., max =  ...)
+start_date <- as.Date("2003-01-01T09:00:00Z")
+end_date <- as.Date("2019-12-31T09:00:00Z")
 atoll <- "..."
-#verticies mask file
 ROI_file = "..."
 
+
 #degrees above max monthly mean that is counted
-bleaching_threshold_C = ...
-degree_day_threshold = ...
+bleaching_threshold_C = 0.5
+degree_day_threshold = 0
 
 shift <- c(0, 0)
 
