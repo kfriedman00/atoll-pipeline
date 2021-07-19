@@ -39,12 +39,9 @@ mask_path <- "C:/Users/kanoe/Documents/Research Data/BSURP/Atolls/Vertex files/"
 #this is the folder we want the atoll directories to go in
 drive_url <- "https://drive.google.com/drive/u/1/folders/1OyVeEd-SG2J9N7-erd6WBFjm63d7Jc7h"
 
-
-#copy lines 63 through 67
-
 #data format - 1: atoll, 2/3: lat, 4/5: long, majors, minors, shift x/y, 
 #####
-for(num in 4:6) {
+for(num in 5:7) {
   bleaching_threshold_C = 0.5
   degree_day_threshold = 0
   current_dat <- full_run[num,]
@@ -84,7 +81,7 @@ for(num in 4:6) {
   #need source vertices reading code 
   big_ol_run()
   
-  file = paste0(path_to_wd, atoll, "/")
+  file <- paste0(path_to_wd, atoll, "/")
   #push the file to drive
   
   all_plots <- list.files(path=path_to_plots)
@@ -93,6 +90,7 @@ for(num in 4:6) {
     drive_upload(p, path=plts)
   }
   #clear the file from computer
+  file <- paste0(path_to_wd, atoll)
   unlink(file, recursive=T)
   rm.all.but(keep = c("server", "sst_id", "start_date", "path_to_wd", 
                       "end_date", "full_run", "drive_url", "mask_path"), 
