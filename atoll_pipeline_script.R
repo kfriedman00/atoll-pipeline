@@ -34,6 +34,9 @@ create_url_and_files <- function(server, sst_id, start_date, end_date, lat, long
   cat(green("INSIDE ATOLL DATA SUCCESSFULLY DOWNLOADED") %+% "\n")
   if(!file.exists(outside_file)) curl::curl_download(outside_url, outside_file, quiet=F)
   cat(green("OUTSIDE ATOLL DATA SUCCESSFULLY DOWNLOADED") %+% "\n")
+  
+  drive_upload(inside_file, path=dat, name="inside_file")
+  drive_upload(outside_file, path=dat, name="outside_file")
 }
 
 
@@ -100,6 +103,7 @@ fix_combine_data_frames <- function() {
   
   ROIs <<- rbind(inside_ROI, outside_ROI)[,-1]
   write.csv(ROIs, paste0(atoll, "/Data/", atoll, "_processed_data.csv"))
+  drive_upload(paste0(atoll, "/Data/", atoll, "_processed_data.csv"), path=dat, name="processed_data")
   cat(green("ROI DATA COMBINED AND SAVED AS ") %+% black(atoll) %+% black(" _processed_data.csv") %+% "\n")
   print("ROIs (after ROI generation):")
   print(head(ROIs))
